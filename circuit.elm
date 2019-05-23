@@ -1,9 +1,8 @@
-module CountMouseClicks exposing (main)
+module QuantumCircuit exposing (main)
 
 import Browser
 import Browser.Events
 import Json.Decode as Decode
---import Html exposing (Html)
 import Html.Attributes as Attr
 import Html.Styled exposing (..)
 import Css exposing (..)
@@ -11,10 +10,13 @@ import Html.Styled.Attributes exposing (css, href, src)
 import Html.Styled.Events exposing (onClick)
 import Array exposing (..)
 
+-- Importing modules
+import Settings exposing (..)
+import Utils exposing (..)
+import Homepage exposing (..)
+import Instruction exposing (..)
 -- SOME CONSTANTS 
-grid_width  = 5 
-grid_height = 3
-num_grid = grid_width * grid_height
+
 btn : List (Attribute msg) -> List (Html msg) -> Html msg
 btn =
     styled button
@@ -26,38 +28,38 @@ btn =
             ]
         ]
 
-theme : { secondary : Color, primary : Color, third : Color }
-theme =
-    { primary   = rgb 85 175 106
-    , secondary = rgb 249 199 0 
-    , third     = rgb 249 141 0 
-    }
-
-
--- Helper functions
-calc_pos x y = x * grid_width + y
-
-my_get x y arr = case get (calc_pos x y) arr of 
-  Just addr -> addr
-  Nothing -> Debug.todo "error get number not in arr"
-
 -- MODEL
 
-type alias Model = { count: Int, curr_x:Int, curr_y:Int, pic_list : Array String }
+type alias Model = { curr_x:Int, 
+                     curr_y:Int, 
+                     pic_list : Array String, 
+                     page : Int 
+                   }
 
-initModel = { count = 0, curr_x = -1, curr_y = -1, pic_list = Array.initialize num_grid (always "test.jpg")}
+initModel = { curr_x = -1, 
+              curr_y = -1, 
+              pic_list = Array.initialize num_grid (always "null"),
+              page = 1
+            }
 
 
 -- UPDATE
 
-type Msg = Noop | Reset | Up | Down | Left | Right | Enter | Xgate | Ygate | Zgate | Hgate
+type Msg = Noop | Reset | Escape |
+            Up | Down | Left | Right | 
+            Xgate | Ygate | Zgate | Hgate | EmptyGate |
+            Page1 | Page2 | Page3
+
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case msg of
     Noop -> (model, Cmd.none)
     Reset -> (initModel, Cmd.none)
-    Enter -> ({model | curr_x = -1, curr_y = -1}, Cmd.none)
+    Escape -> ({model | curr_x = -1, curr_y = -1}, Cmd.none)
+    Page1 -> ({model | page = 1}, Cmd.none)
+    Page2 -> ({model | page = 2}, Cmd.none)
+    Page3 -> ({model | page = 3}, Cmd.none)
     Up -> let 
               (new_x, new_y) = (model.curr_x, model.curr_y)
               (new_x_bd, new_y_bd) = if (new_x, new_y) == (-1, -1) then 
@@ -94,30 +96,36 @@ update msg model =
           if (model.curr_x == -1 && model.curr_y == -1) then 
             (model, Cmd.none)
           else 
-            ({model | pic_list = set (calc_pos model.curr_x model.curr_y) "xgate.jpg" model.pic_list}, Cmd.none)
+            ({model | pic_list = set (calc_pos model.curr_x model.curr_y) "x" model.pic_list}, Cmd.none)
     Ygate -> 
           if (model.curr_x == -1 && model.curr_y == -1) then 
             (model, Cmd.none)
           else 
-            ({model | pic_list = set (calc_pos model.curr_x model.curr_y) "Ygate.jpg" model.pic_list}, Cmd.none)
+            ({model | pic_list = set (calc_pos model.curr_x model.curr_y) "y" model.pic_list}, Cmd.none)
     Zgate -> 
           if (model.curr_x == -1 && model.curr_y == -1) then 
             (model, Cmd.none)
           else 
-            ({model | pic_list = set (calc_pos model.curr_x model.curr_y) "Zgate.jpg" model.pic_list}, Cmd.none)
+            ({model | pic_list = set (calc_pos model.curr_x model.curr_y) "z" model.pic_list}, Cmd.none)
     Hgate -> 
           if (model.curr_x == -1 && model.curr_y == -1) then 
             (model, Cmd.none)
           else 
-            ({model | pic_list = set (calc_pos model.curr_x model.curr_y) "Hgate.jpg" model.pic_list}, Cmd.none)
+            ({model | pic_list = set (calc_pos model.curr_x model.curr_y) "h" model.pic_list}, Cmd.none)
+    EmptyGate ->
+           if (model.curr_x == -1 && model.curr_y == -1) then 
+            (model, Cmd.none)
+          else 
+            ({model | pic_list = set (calc_pos model.curr_x model.curr_y) "null" model.pic_list}, Cmd.none)
+         
 
 create_img str x y curr_pic = 
       img
         [ src str
           , css
             [ padding (px 20)
-              , width (px 50)
-              , height (px 50)
+              , if (x == -2 && y == -2) then width (px 450) else width (px 50)
+              , if (x == -2 && y == -2) then height (px 30) else height (px 50)
               , border3 (px 5) solid (rgb 120 120 120)
               , borderColor (if (x,y) == curr_pic then theme.secondary else theme.third) 
               , hover
@@ -125,8 +133,12 @@ create_img str x y curr_pic =
                   , borderRadius (px 10)
                   ]
               ]
+          , onClick (if (x,y) == curr_pic then Reset else Noop) 
           ]
         []
+
+create_inbox = Debug.todo "todo"
+create_outbox = Debug.todo "todo"
 
 view : Model -> Html Msg
 view model =
@@ -138,6 +150,7 @@ view model =
 
           ]
         curr_pic = (model.curr_x, model.curr_y)
+        -- img_in = create_inbox
         img00  = create_img (my_get 0 0 model.pic_list) 0 0 curr_pic
         img01  = create_img (my_get 0 1 model.pic_list) 0 1 curr_pic
         img02  = create_img (my_get 0 2 model.pic_list) 0 2 curr_pic
@@ -153,17 +166,36 @@ view model =
         img22  = create_img (my_get 2 2 model.pic_list) 2 2 curr_pic
         img23  = create_img (my_get 2 3 model.pic_list) 2 3 curr_pic
         img24  = create_img (my_get 2 4 model.pic_list) 2 4 curr_pic
+        -- img_out = create_outbox
     in
-    let display = text ("Count: " ++ Debug.toString model.curr_x ++ Debug.toString model.curr_y) 
-        display2 = text (List.foldr (\a -> \b -> a ++ " " ++ b) "" <| toList(model.pic_list))
+    let debug_message = text ("Count: " ++ Debug.toString model.curr_x ++ Debug.toString model.curr_y) 
+        debug_message_1 = text (List.foldr (\a -> \b -> a ++ " " ++ b) "" <| toList(model.pic_list))
     in
-    nav [css [position fixed, top (vh 30), left (vw 30)]]
-      [
-        nav [] [img00, img01, img02, img03, img04],
-        nav [] [img10, img11, img12, img13, img14],
-        nav [] [img20, img21, img22, img23, img24],
-        btn [ onClick Reset ] [ text "Click me!" ]
-      ]
+    let 
+        header = 
+          [
+            btn [ onClick Page1 ] [ text "Homepage" ],
+            btn [ onClick Page2 ] [ text "Design your circuit" ],
+            btn [ onClick Page3 ] [ text "How to run circuit" ]
+          ] 
+        display = 
+          case model.page of 
+            1 -> [
+                    homepage_txt [css [homepage_description_style]] [text homepage_description]
+                  ]
+            2 -> [
+                    nav [] [img00, img01, img02, img03, img04],
+                    nav [] [img10, img11, img12, img13, img14],
+                    nav [] [img20, img21, img22, img23, img24], 
+                    btn [ onClick Reset ] [ text "Click me!" ]
+                  ]
+            3 -> [
+                    instruction_txt [css [instruction_description_style]] [text instruction_description]
+                  ]
+            _ -> Debug.todo "page can only be 1,2,3"
+    in 
+    nav [css [position fixed, top (vh 10), left (vw 30)]]
+      ( header ++ display)
 
 
 -- SUBSCRIPTIONS
@@ -184,11 +216,12 @@ subscriptions model =
               "ArrowRight" -> Right
               "ArrowUp" -> Up
               "ArrowDown" -> Down
-              "Enter" -> Enter
+              "Escape" -> Escape
               "x" -> Xgate
               "y" -> Ygate
               "z" -> Zgate
               "h" -> Hgate
+              "e" -> EmptyGate
               _ -> Noop) 
           keyDecoder)
     ]
