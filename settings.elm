@@ -3,7 +3,7 @@ module Settings exposing (..)
 import Css exposing (Color, rgb)
 
 grid_width  = 5 
-grid_height = 3
+grid_height = 2
 num_grid = grid_width * grid_height
 
 gate_lst = ["X", "Y", "Z", "H"]

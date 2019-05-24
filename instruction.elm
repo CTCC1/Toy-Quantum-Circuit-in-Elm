@@ -4,7 +4,12 @@ import Css exposing (padding, border3, solid, margin, color, batch, fontFamilies
 import Html.Styled exposing (Attribute, Html, section, styled)
 import Settings exposing (theme)
 
-instruction_description = """Some instructions here"""
+instruction_description = """
+Step 1:
+
+Step 2:
+Step 3:
+""" ++ """ step 2 """
 
 instruction_description_style = 
     batch

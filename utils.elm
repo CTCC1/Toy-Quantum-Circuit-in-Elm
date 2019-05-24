@@ -10,6 +10,7 @@ to_pic_filename str = case str of
   "y" -> "ygate.jpg"
   "z" -> "zgate.jpg"
   "h" -> "hgate.jpg"
+  "c" -> "cgate.jpg"
   _ -> Debug.todo "pic not existed!"
 
 calc_pos x y = x * grid_width + y

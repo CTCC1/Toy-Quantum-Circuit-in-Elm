@@ -1,7 +1,7 @@
 module Homepage exposing (..)
 
-import Css exposing (padding, border3, solid, margin, color, batch, fontFamilies, fontSize, fontWeight, px, normal, width)
-import Html.Styled exposing (Attribute, Html, section, styled)
+import Css exposing (padding, border3, solid, margin, color, batch, fontFamilies, fontSize, fontWeight, px, normal, width, underline, hover, textDecoration, backgroundColor)
+import Html.Styled exposing (Attribute, Html, section, styled, button)
 import Settings exposing (theme)
 
 homepage_description = """The goal of the project is to build an interactive visualization of basic quantum circuits. 
@@ -33,3 +33,14 @@ homepage_txt =
           , border3 (px 5) solid theme.secondary
           , margin (px 12)
           ]
+
+btn : List (Attribute msg) -> List (Html msg) -> Html msg
+btn =
+    styled button
+        [ margin (px 12)
+        , color theme.primary
+        , hover
+            [ backgroundColor theme.secondary
+            , textDecoration underline
+            ]
+        ]
