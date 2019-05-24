@@ -38,6 +38,7 @@ btn : List (Attribute msg) -> List (Html msg) -> Html msg
 btn =
     styled button
         [ margin (px 12)
+        , fontSize (px 12)
         , color theme.primary
         , hover
             [ backgroundColor theme.secondary

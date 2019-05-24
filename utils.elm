@@ -33,3 +33,4 @@ verify2D ls =
     invalid (x,y) = (x == "c" && y == "c") || (x == "c" && y == "null") || (x == "null" && y == "c")
   in
     isEmpty (filter invalid ls)
+

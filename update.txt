@@ -1,5 +1,5 @@
 ------Instructions------
-Firts, do:
+First, do:
 elm make Main.elm
 
 Open index.html upon success.
@@ -7,6 +7,7 @@ Open index.html upon success.
 
 Our goal was to build an interactive visualization of basic quantum circuits. 
 
+------------------------
 Progress on the Backend:
 We modulize the backend and put all quantum circuit evaluation functions into "Operators.elm"
 We implemented 1d Quantum gates (X, Y, Z, Hadamard) and some of the 2d quantum gates, namely some combination of the 1d gates, and the Controlled-Not Gate.
@@ -18,13 +19,36 @@ So, we should be able to finish them easily over the weekend.
 To demonstrate the fact that measurement in quantum mechanics make the qubit collapsed to a certain state, the type for the state of the circuit consists of "Qubits" "Probability space" and "Output". 
 The output is the result of measurement and any function would only modify the state if the result is not in the Output subtype.
 
+------------------------
 Progress on the Frontend:
+We developed three frontend page, named homepage, circuit and instruction respectively. Either of them contains style and relevant paragraphs\images. MVC model is implemented in the main.elm file, where model is simply defined as following:
+Model = { curr_x:Int, 
+                     curr_y:Int, 
+                     pic_list : Array String, 
+                     page : Int,
+                     onselected : Bool,
+                     checked : Bool,
+                     debug : String
+                   }
+Here, curr_x and curr_y are the image user's mouse is on. We keep track of curr_x and curr_y so that when users perform "clicking" operation, we know the location of the gate about to change. pic_list is a one-dimensional array of string, where the first letter of the gate is saved. Page is a number from 1 to 3 recording which page users' on. Onselected is true/false based on whether you've clicked a button or not. Checked is true/false based on whether you've checked the circuit before you run. Debug is just messages for debugging.
 
+Message is defined as following: 
+type Msg = Noop | Reset | Escape | 
+            Selected Int Int | UnSelected Int Int String | 
+            Checkcircuit | Runcircuit | Debug String |
+            Page1 | Page2 | Page3 
+Select and unselect represents the change of status\option menus when you click one of the images on page 2 (circuit) and would like to replace it with a new gate. Originally we designed the select and unselect to be controlled by keyboard input but we figured out that using mouse click would have better user experience. Therefore, we designed that to be controlled by mouse click and every time you clicked an image, it would update the value of curr_x and curr_y and thus, update the image accordingly. 
 
+One thing to note is that instead of using the original Html library, I decided to use another library called Html.Style where you could implement html elements with css features (e.g. width, font, hover-over effects). Therefore, I changed some of the types and features accordingly. 
+
+------------------------
 Scale Up / Scale Down:
 Realizing the fact that building 3 Qubit circuits would need us to write 100+ different functions to handle different cases, we decide to keep with up to 2 Qubits in the circuit.
 We will then have a bit more time to make sure the quantum behavior is simulated correctly and the user interface is properly designed.
 
+We had tried both keyboard and mouse for user input. Maybe we can scale up by enabling both options for the users.
+
+------------------------
 Todo:
 Backend
 - complete the rest of 2D gate functions
@@ -34,5 +58,6 @@ Backend
 
 Frontend:
 - fix some visualization bugs for pictures of gates (control gate direction)
-- Support use input and properly show output of circuit.
+- Support use input and properly show output of circuit. Currently I had some problem with listening to JSON objects and using Decode functions. 
 - Test robustness.
+- Changing theme color of the app to make it more artistic enjoyable :)
