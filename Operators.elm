@@ -1,19 +1,9 @@
 module Operators exposing (..)
 
+import Array exposing (..)
+
 type Result1D = Qubit  { up :Float, down : Float} | Prob1D { up :Float, down : Float }
 
-{-
-type alias Prob3D = 
-  { up_up_up :Float
-  , up_up_up :Float
-  , up_up_up :Float
-  , up_up_up :Float
-  , up_up_up :Float
-  , up_up_up :Float
-  , up_up_up :Float
-  , up_up_up :Float
-  }
--}
 ---Single Qubit Gates---
 
 xgate : Result1D -> Result1D
@@ -40,38 +30,48 @@ type Result2D = Qubit2D { up1 :Float, down1 : Float , up2 : Float, down2 : Float
 
 ---standard bipartite spin-1/2 basis: {00,01,10,11}---
 
-{- easy stuff, just style?
+swap2D: Result2D -> Result2D
+swap2D input =
+  case input of
+    Qubit2D qs -> Qubit2D { up1 = qs.up2, down1 = qs.down2, up2 = qs.up1, down2 = qs.down1}
+    Prob2D ps -> Prob2D { up_up = ps.up_up, up_down = ps.down_up , down_up = ps.up_down, down_down = ps.down_down} 
+    _ -> input
+
+id1id2 : Result2D -> Result2D
+id1id2 input = input
+
 id1x2 : Result2D -> Result2D
 id1x2 input =
+  case input of
+    Qubit2D qs -> Qubit2D { up1 = qs.up1, down1 = qs.down1, up2 = qs.down2, down2 = qs.up2}
+    Prob2D ps -> Prob2D { up_up = ps.up_down, up_down = ps.up_up , down_up = ps.down_down, down_down = ps.down_up} 
+    _ -> input
 
-id2x1
+id2x1 : Result2D -> Result2D
+id2x1 input = swap2D (id1x2 (swap2D input))
 
+{- easy stuff, just todo
 id1z2
-
 id2z1
 
 id1h2
-
 id2h1
 
 x1x2
-
 z1z2
 ......
-
 -}
 c1not2 : Result2D -> Result2D
 c1not2 input =
   case input of
     Qubit2D qs -> Prob2D { up_up = qs.up1 * qs.up2, up_down = qs.up1 * qs.down2, down_up = qs.down1 * qs.down2, down_down = qs.down1 * qs.up2}
-    Prob2D ps -> Prob2D { up_up = ps.up_down, up_down = ps.up_up, down_up = ps.down_up, down_down = ps.down_down}
+    Prob2D ps -> Prob2D { up_up = ps.up_up, up_down = ps.up_down, down_up = ps.down_down, down_down = ps.down_up}
     _ -> input
 
-{-
 c2not1 : Result2D -> Result2D
-c2not1 input =
-  case input of
-    Qubit2D qs -> 
+c2not1 input = swap2D (c1not2 (swap2D input))
+
+{-
 
 c1z2 : Qubit -> Qubit -> Prob2D
 c1z2 q1 q2 =
@@ -122,11 +122,56 @@ apply1Q init funcs =
     [] -> init
     func::rest -> apply1Q (func init) rest
 
-apply2Q : Result2D -> List (Result2D -> Result2D) -> Result2D
-apply2Q init funcs =
+funcToGate2D : (String, String) -> (Result2D -> Result2D)
+funcToGate2D (x,y) =
+  case (x,y) of
+    {-("x","x")       -> 
+    ("x","y")       -> 
+    ("x","z")       ->
+    ("x","h")       ->-}
+    ("x","c")       -> c2not1
+    ("x","null")    -> id2x1
+    {-("y","x")       ->
+    ("y","y")       ->
+    ("y","z")       ->
+    ("y","h")       ->
+    ("y","c")       ->
+    ("y","null")    ->
+    ("z","x")       ->
+    ("z","y")       ->
+    ("z","z")       ->
+    ("z","h")       ->
+    ("z","c")       ->
+    ("z","null")    ->
+    ("h","x")       ->
+    ("h","y")       ->
+    ("h","z")       ->
+    ("h","h")       ->
+    ("h","c")       ->
+    ("h","null")    ->-}
+    ("c","x")       -> c1not2
+    {-("c","y")       ->
+    ("c","z")       ->
+    ("c","h")       ->-}
+    ("null","x")    -> id1x2
+    {-("null","y")    ->
+    ("null","z")    ->
+    ("null","h")    ->-}
+    ("null","null") -> id1id2
+    _               -> Debug.todo "Invalid gate input in 2D"
+
+funcsToGates2D : Array (String, String) -> List (Result2D -> Result2D)
+funcsToGates2D xs = 
+  toList(map funcToGate2D xs)
+
+apply2Qhelper : Result2D -> List (Result2D -> Result2D) -> Result2D
+apply2Qhelper init funcs =
   case funcs of
     [] -> init
-    func::rest -> apply2Q (func init) rest
+    func::rest -> apply2Qhelper (func init) rest
+
+apply2Q : Result2D -> Array (String, String)  -> Result2D
+apply2Q init funcs = apply2Qhelper init (funcsToGates2D funcs)
 
 
 {- 
@@ -164,16 +209,3 @@ apply2Q init funcs =
         "measure" -> init
         _ -> Debug.todo "Invalid operators in apply2Q"
 -} 
-
-
-{-
-measurement3Q : 
-
-apply1Q
-
-apply2
-
-apply3 : Prob2D -> (Qubit -> Qubit) -> Prob2D
-apply (a, b, c, d) (func1 func2) = 
-  func (1, 0)
--}
