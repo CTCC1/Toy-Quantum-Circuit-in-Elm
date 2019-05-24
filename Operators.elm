@@ -47,43 +47,91 @@ id1x2 input =
     Prob2D ps -> Prob2D { up_up = ps.up_down, up_down = ps.up_up , down_up = ps.down_down, down_down = ps.down_up} 
     _ -> input
 
-id2x1 : Result2D -> Result2D
-id2x1 input = swap2D (id1x2 (swap2D input))
+x1id2 : Result2D -> Result2D
+x1id2 input = swap2D (id1x2 (swap2D input))
 
-{- easy stuff, just todo
-id1z2
-id2z1
+{- straightforward stuff, just todo-}
+id1y2 : Result2D -> Result2D
+id1y2 = Debug.todo "todo"
+y1id2 : Result2D -> Result2D
+y1id2 input = swap2D (id1y2 (swap2D input))
 
-id1h2
-id2h1
+id1z2 : Result2D -> Result2D
+id1z2 = Debug.todo "todo"
+z1id2 : Result2D -> Result2D
+z1id2 input = swap2D (id1z2 (swap2D input))
 
-x1x2
-z1z2
-......
--}
-c1not2 : Result2D -> Result2D
-c1not2 input =
+id1h2 : Result2D -> Result2D
+id1h2 = Debug.todo "todo"
+h1id2 : Result2D -> Result2D
+h1id2 input = swap2D (id1h2 (swap2D input))
+
+x1x2 : Result2D -> Result2D
+x1x2  = Debug.todo "todo"
+
+x1y2 : Result2D -> Result2D
+x1y2 = Debug.todo "todo"
+y1x2 : Result2D -> Result2D
+y1x2 input = swap2D (x1y2 (swap2D input))
+
+x1z2 : Result2D -> Result2D
+x1z2 = Debug.todo "todo"
+z1x2 : Result2D -> Result2D
+z1x2 input = swap2D (x1z2 (swap2D input))
+
+x1h2 : Result2D -> Result2D
+x1h2 = Debug.todo "todo"
+h1x2 : Result2D -> Result2D
+h1x2 input = swap2D (x1h2 (swap2D input))
+
+y1y2 : Result2D -> Result2D
+y1y2 = Debug.todo "todo"
+
+y1z2 : Result2D -> Result2D
+y1z2 = Debug.todo "todo"
+z1y2 : Result2D -> Result2D
+z1y2 input = swap2D (y1z2 (swap2D input))
+
+y1h2 : Result2D -> Result2D
+y1h2 = Debug.todo "todo"
+h1y2 : Result2D -> Result2D
+h1y2 input = swap2D (y1h2 (swap2D input))
+
+y1c2 : Result2D -> Result2D
+y1c2 = Debug.todo "todo"
+c1y2 : Result2D -> Result2D
+c1y2 input = swap2D (y1c2 (swap2D input))
+
+z1z2 : Result2D -> Result2D
+z1z2 = Debug.todo "todo"
+
+z1h2 : Result2D -> Result2D
+z1h2 = Debug.todo "todo"
+h1z2 : Result2D -> Result2D
+h1z2 input = swap2D (z1h2 (swap2D input))
+
+z1c2 : Result2D -> Result2D
+z1c2 = Debug.todo "todo"
+c1z2 : Result2D -> Result2D
+c1z2 input = swap2D (z1c2 (swap2D input))
+
+h1h2 : Result2D -> Result2D
+h1h2 = Debug.todo "todo"
+
+h1c2 : Result2D -> Result2D
+h1c2 = Debug.todo "todo"
+c1h2 : Result2D -> Result2D
+c1h2 input = swap2D (h1c2 (swap2D input))
+
+c1x2 : Result2D -> Result2D
+c1x2 input =
   case input of
     Qubit2D qs -> Prob2D { up_up = qs.up1 * qs.up2, up_down = qs.up1 * qs.down2, down_up = qs.down1 * qs.down2, down_down = qs.down1 * qs.up2}
     Prob2D ps -> Prob2D { up_up = ps.up_up, up_down = ps.up_down, down_up = ps.down_down, down_down = ps.down_up}
     _ -> input
 
-c2not1 : Result2D -> Result2D
-c2not1 input = swap2D (c1not2 (swap2D input))
-
-{-
-
-c1z2 : Qubit -> Qubit -> Prob2D
-c1z2 q1 q2 =
-  { up_up = q1.up * q2.up
-  , up_down = q1.up * q2.down
-  , down_up = q1.down * q2.up
-  , down_down = -q1.down * q2.down
-  }
-
-c2z1  : Qubit -> Qubit -> Prob2D
-c2z1 q1 q2 = c1z2 q2 q1
--}
+x1c2 : Result2D -> Result2D
+x1c2 input = swap2D (c1x2 (swap2D input))
 
 ---Measurement---
 
@@ -125,38 +173,38 @@ apply1Q init funcs =
 funcToGate2D : (String, String) -> (Result2D -> Result2D)
 funcToGate2D (x,y) =
   case (x,y) of
-    {-("x","x")       -> 
-    ("x","y")       -> 
-    ("x","z")       ->
-    ("x","h")       ->-}
-    ("x","c")       -> c2not1
-    ("x","null")    -> id2x1
-    {-("y","x")       ->
-    ("y","y")       ->
-    ("y","z")       ->
-    ("y","h")       ->
-    ("y","c")       ->
-    ("y","null")    ->
-    ("z","x")       ->
-    ("z","y")       ->
-    ("z","z")       ->
-    ("z","h")       ->
-    ("z","c")       ->
-    ("z","null")    ->
-    ("h","x")       ->
-    ("h","y")       ->
-    ("h","z")       ->
-    ("h","h")       ->
-    ("h","c")       ->
-    ("h","null")    ->-}
-    ("c","x")       -> c1not2
-    {-("c","y")       ->
-    ("c","z")       ->
-    ("c","h")       ->-}
+    ("x","x")       -> x1x2
+    ("x","y")       -> x1y2
+    ("x","z")       -> x1z2
+    ("x","h")       -> x1h2
+    ("x","c")       -> x1c2
+    ("x","null")    -> x1id2
+    ("y","x")       -> y1x2
+    ("y","y")       -> y1y2
+    ("y","z")       -> y1z2
+    ("y","h")       -> y1h2
+    ("y","c")       -> y1c2
+    ("y","null")    -> y1id2
+    ("z","x")       -> z1x2
+    ("z","y")       -> z1y2
+    ("z","z")       -> z1z2
+    ("z","h")       -> z1h2
+    ("z","c")       -> z1c2
+    ("z","null")    -> z1id2
+    ("h","x")       -> h1x2
+    ("h","y")       -> h1y2
+    ("h","z")       -> h1z2
+    ("h","h")       -> h1h2
+    ("h","c")       -> h1c2
+    ("h","null")    -> h1id2
+    ("c","x")       -> c1x2
+    ("c","y")       -> c1y2
+    ("c","z")       -> c1z2
+    ("c","h")       -> c1h2
     ("null","x")    -> id1x2
-    {-("null","y")    ->
-    ("null","z")    ->
-    ("null","h")    ->-}
+    ("null","y")    -> id1y2
+    ("null","z")    -> id1z2
+    ("null","h")    -> id1h2
     ("null","null") -> id1id2
     _               -> Debug.todo "Invalid gate input in 2D"
 

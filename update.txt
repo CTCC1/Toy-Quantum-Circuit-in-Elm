@@ -1,0 +1,38 @@
+------Instructions------
+Firts, do:
+elm make Main.elm
+
+Open index.html upon success.
+------------------------
+
+Our goal was to build an interactive visualization of basic quantum circuits. 
+
+Progress on the Backend:
+We modulize the backend and put all quantum circuit evaluation functions into "Operators.elm"
+We implemented 1d Quantum gates (X, Y, Z, Hadamard) and some of the 2d quantum gates, namely some combination of the 1d gates, and the Controlled-Not Gate.
+The interface is take in an array of string pairs from the frontend model, translate it into a list of functions and recursively evaluate to get the result.
+
+Regarding the progress, the interface is done and we completed 5 out of 30-ish evaluation functions. Note that the rest 25 functions are simply following the same logic. 
+So, we should be able to finish them easily over the weekend.
+
+To demonstrate the fact that measurement in quantum mechanics make the qubit collapsed to a certain state, the type for the state of the circuit consists of "Qubits" "Probability space" and "Output". 
+The output is the result of measurement and any function would only modify the state if the result is not in the Output subtype.
+
+Progress on the Frontend:
+
+
+Scale Up / Scale Down:
+Realizing the fact that building 3 Qubit circuits would need us to write 100+ different functions to handle different cases, we decide to keep with up to 2 Qubits in the circuit.
+We will then have a bit more time to make sure the quantum behavior is simulated correctly and the user interface is properly designed.
+
+Todo:
+Backend
+- complete the rest of 2D gate functions
+- handle circuit without any measurement: reject them? Don't give any output? Have a default measurement at the end?
+- handle measurement of 1 qubit when two qubits are not entangled.
+- Test robustness.
+
+Frontend:
+- fix some visualization bugs for pictures of gates (control gate direction)
+- Support use input and properly show output of circuit.
+- Test robustness.
