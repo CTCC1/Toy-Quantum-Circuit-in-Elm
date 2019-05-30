@@ -11,8 +11,8 @@ urlMirrorService =
     "https://httpbin.org/post"
 
 select_pic_style = 
-  [ width (px 150)
-    , height (px 140)
+  [ width (px 100)
+    , height (px 100)
     , hover
         [ borderColor theme.primary
         , borderRadius (px 10)
@@ -50,17 +50,6 @@ frm =
             ]
         ]
 
-viewForm : Html msg
-viewForm =
-    form []
-        [ label []
-            [ text "input_val_1"
-            , input [ type_ "text", placeholder "val_1", name "val_1" ] []
-            ]
-        , label []
-            [ text "input_val_2"
-            , input [ type_ "input_val_2", placeholder "val_2", name "val_2" ] []
-            ]
-        , button [] [ text "Submit" ]
-        ]
+
+
 

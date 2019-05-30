@@ -3,6 +3,7 @@ module Utils exposing (..)
 import Settings exposing (..)
 import Array exposing (..)
 
+
 -- helper functions -- circuit
 to_pic_filename str = case str of 
   "null" -> "test.jpg"
@@ -11,6 +12,7 @@ to_pic_filename str = case str of
   "z" -> "zgate.jpg"
   "h" -> "hgate.jpg"
   "c" -> "cgate.jpg"
+  "m" -> "measure.jpg"
   _ -> Debug.todo "pic not existed!"
 
 calc_pos x y = x * grid_width + y
@@ -34,3 +36,8 @@ verify2D ls =
   in
     isEmpty (filter invalid ls)
 
+parseFloat : String -> Float
+parseFloat string =
+  case String.toFloat string of
+    Just value -> value
+    Nothing -> 0

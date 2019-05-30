@@ -7,10 +7,10 @@ import Html.Attributes as Attr
 import Html.Styled exposing (..)
 import Css exposing (..)
 import Html.Styled.Attributes exposing (css, href, src)
-import Html.Styled.Events exposing (onClick, onDoubleClick)
+import Html.Styled.Events exposing (onClick, onDoubleClick, onInput)
 import Array exposing (..)
 import Html.String exposing (toString)
-
+import Html.Styled.Attributes exposing (action, method, class, type_, placeholder, name, autofocus, width, height)
 -- Importing modules
 import Settings exposing (..)
 import Utils exposing (..)
@@ -21,6 +21,8 @@ import Circuit exposing (..)
 
 type alias Model = { curr_x:Int, 
                      curr_y:Int, 
+                     input_x : Float, -- Float,
+                     input_y : Float,
                      pic_list : Array String, 
                      page : Int,
                      onselected : Bool,
@@ -30,6 +32,8 @@ type alias Model = { curr_x:Int,
 
 initModel = { curr_x = -1, 
               curr_y = -1, 
+              input_x = 0, 
+              input_y = 0, 
               pic_list = Array.initialize num_grid (always "null"),
               page = 1,
               onselected = False,
@@ -41,8 +45,9 @@ initModel = { curr_x = -1,
 
 type Msg = Noop | Reset | Escape | 
             Selected Int Int | UnSelected Int Int String | 
-            Checkcircuit | Runcircuit | Debug String |
-            Page1 | Page2 | Page3 
+            Checkcircuit | Runcircuit  | Debug String |
+            Page1 | Page2 | Page3 |
+            UpdateField String String
 
 
 update : Msg -> Model -> (Model, Cmd Msg)
@@ -69,6 +74,14 @@ update msg model =
       in
         ({model | checked = flag}, Cmd.none)
     Runcircuit -> Debug.todo "todo"
+    UpdateField s fd -> 
+      let 
+        xs = parseFloat s
+      in 
+        case fd of 
+          "x" -> ({model | input_x = xs}, Cmd.none)
+          "y" -> ({model | input_y = xs}, Cmd.none)
+          _ -> Debug.todo "bad input"
     Debug s -> ({model | debug = s}, Cmd.none)
     -- _ -> (model, Cmd.none)
 
@@ -85,10 +98,55 @@ create_img str x y curr_pic =
 create_slt name gate (x, y) = 
       img
         [ src name
+          , width 30
+          , height 30
           , css select_pic_style
           , onClick (UnSelected x y gate)
           ]
         []
+
+decodeButtonText : Decode.Decoder String
+decodeButtonText =
+  Decode.at ["target", "innerText" ] Decode.string
+
+viewForm : Model -> Html Msg
+viewForm model =
+    frm []
+        [ label []
+            [ text "Enter value for y"
+            , input [ type_ "text", 
+                      placeholder "Enter value for x", 
+                      name "Enter value for x", 
+                      autofocus True,
+                      onInput (\str -> UpdateField str "x") 
+                    ]
+              []
+            ]
+        , label []
+            [ text "Enter value for y"
+            , input [ type_ "input_val_2", 
+                      placeholder "Enter value for y", 
+                      name "Enter value for y",
+                      autofocus True,
+                      onInput (\str -> UpdateField str "y")
+                    ] 
+              []
+            ]
+        ]
+
+submitForm1 = frm []
+                [ label []
+                  [ text "input_val_1"
+                    , input [ type_ "text", placeholder "val_1", name "val_1", onInput (\str -> UpdateField str "x") ] []
+                    ]
+                ]
+
+submitForm2 = frm [] 
+                [ label []
+                    [ text "input_val_2"
+                      , input [ type_ "input_val_2", placeholder "val_2", name "val_2", onInput (\str -> UpdateField str "y")] []
+                    ]
+                ]
 
 view : Model -> Html Msg
 view model =
@@ -121,8 +179,8 @@ view model =
         imgmeasure_select = create_slt "measure.jpg" "m" curr_pic
         -- img_out = create_outbox
     in
-    let debug_message = [text (Debug.toString model.checked)]
-        debug_message_1 = text (List.foldr (\a -> \b -> a ++ " " ++ b) "" <| toList(model.pic_list))
+    let debug_message = [text (Debug.toString model.input_x ++ Debug.toString model.input_y)]
+        debug_message_1 = [text (List.foldr (\a -> \b -> a ++ " " ++ b) "" <| toList(model.pic_list))]
     in
     let 
         header = 
@@ -137,14 +195,16 @@ view model =
                     homepage_txt [css [homepage_description_style]] [text homepage_description]
                   ]
             2 -> [
-                    frm [] [viewForm],
+                    submitForm1,
+                    submitForm2,
+                    btn [onClick Noop] [text "Click to submit your input"],
                     nav [] [img00, img01, img02, img03, img04],
                     nav [] [img10, img11, img12, img13, img14]
-                  ] ++ 
+                    ] ++ 
                     if model.onselected == True then 
                       [
-                        nav [] [imgx_select, imgy_select, imgz_select],
-                        nav [] [imgh_select, imgc_select, imgnull_select, imgmeasure_select]
+                        nav [] [imgx_select, imgz_select, imgnull_select],
+                        nav [] [imgh_select, imgc_select, imgmeasure_select]
                       ]
                     else 
                       [
@@ -158,12 +218,11 @@ view model =
             _ -> Debug.todo "page can only be 1,2,3"
     in 
     nav [css [position fixed, top (vh 10), left (vw 30)]]
-      ( header ++ display )
+      (debug_message_1 ++ header ++ display )
 
 
 -- SUBSCRIPTIONS
 
--- https://github.com/elm/browser/blob/1.0.0/notes/keyboard.md
 keyDecoder : Decode.Decoder String
 keyDecoder =
   Decode.field "key" Decode.string
