@@ -109,6 +109,8 @@ strToGate2Q : (String, String) -> M.Matrix Float
 strToGate2Q (str1, str2) =
   case (str1, str2) of
     ("c","c") -> Debug.todo "invalid gate, two control in 2Q"
+    ("c","null") -> Debug.todo "invalid gate, empty control in 2Q"
+    ("null","c") -> Debug.todo "invalid gate, empty control in 2Q"
     ("c","x") -> cnot
     ("c","z") -> cz
     ("c","h") -> ch
