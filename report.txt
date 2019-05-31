@@ -22,3 +22,18 @@ Due to the nature of functional programming and the non-existence of tensor prod
 The result is rewarding though, as we allow a great deal of freedom for the user to build their own 2 or 3 Qubit Quantum Circuit.
 
 Frontend:
+Just like backend modules, we also separate different pages and different status into different modules. We added a parameter named page in our model to control the page user's on. We have developed the following three pages:
+
+1. Introduction page. The introduction page is main a paragraph letting users know what this application is and what we are trying to do by using this application.
+
+2. Circuit page. This is where the user can actually get to modify the circuit and put in values they're interested in and run the circuit. We will talk about its functionality later in the report.
+
+3. Instruction page. This page is mainly used to teach users how to use our application, including how to modify user input, how to check if a circuit is correctly designed, how to run checked circuits.
+
+As the main goal of this application is to giving user freedom to design and run 2D and 3D circuits as they want, we hope that designs with documentation would be best approach. Due to the heavy scientific nature of this application, a lot of the computation work was conducted with the Operation module. Our main module "Homepage.elm" is basically calling from Opertation module to retrieve outputs. 
+
+Inside the circuit page, we successfully managed to present to users different status of the circuit by changing variables in the model. We have three status for the webpage (3 pages) and three status for the circuit (checked, run, neither checked nor run). In order to return correct input, we have also developed a few sanity check functions and "checklist feature" that ensure user inputs are correctly before they are passed on to the operations module.
+
+Another thing we have accomplished is that we have tried different interaction schemes and finally choose to use the currently one. This is really laborious work because we first started off controlling the circuit using keyboard input. But we realized that this might not be the best way for users to interact and therefore, we change to mouse click. After clicking a certain location (picture) in the circuit picture, the application would expand several option gates for users to choose from.
+
+A lot of the front-end design are based on css and html and we used a great number of libraries in these field (e.g. html.styled, Css, etc.). Some of them are really useful in styling elements but they often came into type conflicts with each other. For example, Attribute type could be from different libraries and therefore, could not be used togeter. Also, some of the libraries are poorly documented and don't have any usage examples. This definitely costs us more time in understanding how things worked and how we can utilize the library in our own application design.

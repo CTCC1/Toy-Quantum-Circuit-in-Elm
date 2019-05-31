@@ -81,7 +81,11 @@ update msg model =
       in
         ({model | onselected = 0, checked = flag}, Cmd.none)
     Runcircuit -> 
-        if (model.checked == True) then 
+        if (model.checked == True && 
+            ((model.page == 2 && model.input_x >=0 && model.input_y >=0) || 
+             (model.page == 3 && model.input_x >=0 && model.input_y >=0 && model.input_z >=0)
+              ))
+             then 
           let 
             real_ans = if model.page == 2 then 
                         measure2Q (apply2Q (model.input_x, model.input_y) (convert_pairs model.pic_list))
@@ -137,12 +141,14 @@ create_cat file =
         [ src file
           , width 600
           , height 300
-          --, css (select_pic_style)
+          , css [
+                border3 (px 1) solid (rgb 120 120 120)
+                , borderColor theme.third]
           ]
         []
 
 my_font1 my_pred = [fontFamilies ["monospace"], if my_pred then color theme.green else color theme.red, fontSize (px 16)]
-my_font = [fontFamilies ["monospace"], color theme.third, fontSize (px 16)]
+my_font3 sz   = [fontFamilies ["monospace"], color theme.third, fontSize (px sz)]
 
 decodeButtonText : Decode.Decoder String
 decodeButtonText =
@@ -197,6 +203,7 @@ view model =
         img24  = create_img (my_get 2 4 model.pic_list) 2 4 curr_pic
 
         img_cat = create_cat "./pics/cat.jpg"
+        img_exm = create_cat "./pics/example.jpg"
         imgx_select       = create_slt "./pics/xgate.jpg" "x" curr_pic
         imgy_select       = create_slt "./pics/ygate.jpg" "y" curr_pic
         imgz_select       = create_slt "./pics/zgate.jpg" "z" curr_pic
@@ -206,6 +213,7 @@ view model =
         imgcd_select      = create_slt "./pics/cgate.jpg" "cd" curr_pic          
         imgnull_select    = create_slt "./pics/test.jpg"  "null" curr_pic
         imgmeasure_select = create_slt "./pics/measure.jpg" "m" curr_pic
+        imgbridge_select  = create_slt "./pics/bridge.jpg" "bridge" curr_pic
 
         img_in            = create_box "./pics/input1.jpg"
         img_in2           = create_box "./pics/input2.jpg"
@@ -219,25 +227,19 @@ view model =
         img_ud            = create_box "./pics/result3.jpg"
         img_dd            = create_box "./pics/result4.jpg"
 
-        (val1, val2) = 
-            case model.ans of 
-                x::y::_ -> (R.round 4 (x^2), R.round 4 (y^2))
-                _ -> ("", "")
+        img_uuu           = create_box "./pics/000.jpg"
+        img_uud           = create_box "./pics/001.jpg"
+        img_udu           = create_box "./pics/010.jpg"
+        img_udd           = create_box "./pics/011.jpg"
+        img_duu           = create_box "./pics/100.jpg"
+        img_dud           = create_box "./pics/101.jpg"
+        img_ddu           = create_box "./pics/110.jpg"
+        img_ddd           = create_box "./pics/111.jpg"
 
-        (val3, val4) = 
-            case model.ans of 
-                _::_::x::y::_ -> (R.round 4 (x^2), R.round 4 (y^2))
-                _ -> ("", "")
-
-        (val5, val6) = 
-            case model.ans of 
-                _::_::_::_::x::y::_ -> (R.round 4 (x^2), R.round 4 (y^2))
-                _ -> ("", "")
-
-        (val7, val8) = 
-            case model.ans of 
-                _::_::_::_::_::_::x::y::_ -> (R.round 4 (x^2), R.round 4 (y^2))
-                _ -> ("", "")
+        (val1, val2) = take12 model.ans
+        (val3, val4) = take34 model.ans
+        (val5, val6) = take56 model.ans
+        (val7, val8) = take78 model.ans
 
         background =   div [ css 
                               [ backgroundColor theme.secondary
@@ -261,14 +263,14 @@ view model =
           case model.page of 
             1 -> [ nav [css [position fixed, top (vh 7), left (vw 30)]] [img_cat] 
                 ] 
-                 ++ List.map (\((x,y), s) -> 
-                    homepage_txt [css [homepage_description_style, position fixed, top (vh x), left (vw y)]] [text s]
+                 ++ List.map (\((x,y,clr), s) -> 
+                    homepage_txt clr [css [homepage_description_style, position fixed, top (vh x), left (vw y)]] [text s]
                     ) homepage_description
             2 -> [
                     submitForm1 35 7,
                     submitForm2 40 7,
-                    nav [css [position fixed, top (vh 14), left (vw 30)]] [img_in, img00, img01, img02, img03, img04, img_out],
-                    nav [css [position fixed, top (vh 28), left (vw 30)]] [img_in2, img10, img11, img12, img13, img14, img_out2]
+                    nav [css [position fixed, top (vh 10), left (vw 30)]] [img_in, img00, img01, img02, img03, img04, img_out],
+                    nav [css [position fixed, top (vh 24), left (vw 30)]] [img_in2, img10, img11, img12, img13, img14, img_out2]
                     ] ++ 
                     case model.onselected of
                       1 -> [
@@ -276,8 +278,8 @@ view model =
                             ]
                       0 -> [
                                 btn [ onClick Escape,       css [position fixed, top (vh 45), left (vw 12)]] [ text "Click to reset" ],
-                                btn [ onClick Checkcircuit, css [position fixed, top (vh 63), left (vw 42)]] [ text "Click to check circuit"],
-                                btn [ onClick Runcircuit,   css [position fixed, top (vh 63), left (vw 54)]] [ text "Click to run circuit"],
+                                btn [ onClick Checkcircuit, css [position fixed, top (vh 50), left (vw 42)]] [ text "Click to check circuit"],
+                                btn [ onClick Runcircuit,   css [position fixed, top (vh 50), left (vw 54)]] [ text "Click to run circuit"],
                                 nav [css ([position fixed, top (vh 61), left (vw 7)] ++ my_font1 (True))] [text "Checklist:"],
                                 nav [css ([position fixed, top (vh 64), left (vw 7)] ++ my_font1 (model.input_x <= 1 && model.input_x >=0))] [text "1. Value a1 is between 0 and 1"],
                                 nav [css ([position fixed, top (vh 67), left (vw 7)] ++ my_font1 (model.input_y <= 1 && model.input_y >=0))] [text "2. Value a2 is between 0 and 1"],
@@ -289,33 +291,33 @@ view model =
                                 nav [css ([position fixed, top (vh 68), left (vw 43)])] [img_du],
                                 nav [css ([position fixed, top (vh 68), left (vw 69)])] [img_dd],
 
-                                div [css ([position fixed, top (vh 55), left (vw 25)] ++ my_font)] [text "Probability of state |00>"],
-                                div [css ([position fixed, top (vh 55), left (vw 52)] ++ my_font)] [text "Probability of state |01>"],
-                                div [css ([position fixed, top (vh 70), left (vw 25)] ++ my_font)] [text "Probability of state |10>"],
-                                div [css ([position fixed, top (vh 70), left (vw 52)] ++ my_font)] [text "Probability of state |11>"],
+                                div [css ([position fixed, top (vh 55), left (vw 25)] ++ my_font3 16)] [text "Probability of state |00>"],
+                                div [css ([position fixed, top (vh 55), left (vw 52)] ++ my_font3 16)] [text "Probability of state |01>"],
+                                div [css ([position fixed, top (vh 70), left (vw 25)] ++ my_font3 16)] [text "Probability of state |10>"],
+                                div [css ([position fixed, top (vh 70), left (vw 52)] ++ my_font3 16)] [text "Probability of state |11>"],
 
-                                div [css ([position fixed, top (vh 57), left (vw 30)] ++ my_font)] [text val1],                    
-                                div [css ([position fixed, top (vh 57), left (vw 57)] ++ my_font)] [text val2],  
-                                div [css ([position fixed, top (vh 72), left (vw 30)] ++ my_font)] [text val3],  
-                                div [css ([position fixed, top (vh 72), left (vw 57)] ++ my_font)] [text val4]
+                                div [css ([position fixed, top (vh 57), left (vw 30)] ++ my_font3 20)] [text val1],                    
+                                div [css ([position fixed, top (vh 57), left (vw 57)] ++ my_font3 20)] [text val2],  
+                                div [css ([position fixed, top (vh 72), left (vw 30)] ++ my_font3 20)] [text val3],  
+                                div [css ([position fixed, top (vh 72), left (vw 57)] ++ my_font3 20)] [text val4]
                             ]
                       _ -> Debug.todo "impossible"
             3 -> [
                     submitForm1 35 7,
                     submitForm2 40 7,
                     submitForm3 45 7,
-                    nav [css [position fixed, top (vh 14), left (vw 30)]] [img_in, img00, img01, img02, img03, img04, img_out],
-                    nav [css [position fixed, top (vh 28), left (vw 30)]] [img_in2, img10, img11, img12, img13, img14, img_out2],
-                    nav [css [position fixed, top (vh 42), left (vw 30)]] [img_in3, img20, img21, img22, img23, img24, img_out3]
+                    nav [css [position fixed, top (vh 10), left (vw 30)]] [img_in, img00, img01, img02, img03, img04, img_out],
+                    nav [css [position fixed, top (vh 24), left (vw 30)]] [img_in2, img10, img11, img12, img13, img14, img_out2],
+                    nav [css [position fixed, top (vh 38), left (vw 30)]] [img_in3, img20, img21, img22, img23, img24, img_out3]
                     ] ++ 
                     case model.onselected of
                       1 -> [
-                                nav [css [position fixed, top (vh 63), left (vw 30)]] ([imgx_select, imgz_select, imgnull_select, imgh_select] ++ (if model.page == 2 then [imgc_select] else [imgcu_select, imgcd_select]))
+                                nav [css [position fixed, top (vh 63), left (vw 30)]] ([imgx_select, imgz_select, imgnull_select, imgh_select] ++ (if model.page == 2 then [imgc_select] else [imgcu_select, imgcd_select, imgbridge_select]))
                             ]
                       0 -> [
                                 btn [ onClick Escape,       css [position fixed, top (vh 50), left (vw 12)]] [ text "Click to reset" ],
-                                btn [ onClick Checkcircuit, css [position fixed, top (vh 63), left (vw 42)]] [ text "Click to check circuit"],
-                                btn [ onClick Runcircuit,   css [position fixed, top (vh 63), left (vw 54)]] [ text "Click to run circuit"],
+                                btn [ onClick Checkcircuit, css [position fixed, top (vh 55), left (vw 42)]] [ text "Click to check circuit"],
+                                btn [ onClick Runcircuit,   css [position fixed, top (vh 55), left (vw 54)]] [ text "Click to run circuit"],
                                 nav [css ([position fixed, top (vh 61), left (vw 7)] ++ my_font1 (True))] [text "Checklist:"],
                                 nav [css ([position fixed, top (vh 64), left (vw 7)] ++ my_font1 (model.input_x <= 1 && model.input_x >=0))] [text "1. Value a1 is between 0 and 1"],
                                 nav [css ([position fixed, top (vh 67), left (vw 7)] ++ my_font1 (model.input_y <= 1 && model.input_y >=0))] [text "2. Value a2 is between 0 and 1"],
@@ -323,32 +325,38 @@ view model =
                                 nav [css ([position fixed, top (vh 73), left (vw 7)] ++ my_font1 (model.checked == True))] [text "4. Circuit is checked before run"]
                              ]
                       2 -> [                    
-                                nav [css ([position fixed, top (vh 63), left (vw 43)])] [img_uu],
-                                nav [css ([position fixed, top (vh 63), left (vw 65)])] [img_ud],
-                                nav [css ([position fixed, top (vh 78), left (vw 43)])] [img_du],
-                                nav [css ([position fixed, top (vh 78), left (vw 65)])] [img_dd],
-                                div [css ([position fixed, top (vh 65), left (vw 28)] ++ my_font)] [text "Probability of state |000>"],
-                                div [css ([position fixed, top (vh 65), left (vw 50)] ++ my_font)] [text "Probability of state |001>"],
-                                div [css ([position fixed, top (vh 80), left (vw 28)] ++ my_font)] [text "Probability of state |010>"],
-                                div [css ([position fixed, top (vh 80), left (vw 50)] ++ my_font)] [text "Probability of state |011>"],
-                                div [css ([position fixed, top (vh 65), left (vw 28)] ++ my_font)] [text "Probability of state |100>"],
-                                div [css ([position fixed, top (vh 65), left (vw 50)] ++ my_font)] [text "Probability of state |101>"],
-                                div [css ([position fixed, top (vh 80), left (vw 28)] ++ my_font)] [text "Probability of state |110>"],
-                                div [css ([position fixed, top (vh 80), left (vw 50)] ++ my_font)] [text "Probability of state |111>"],
+                                nav [css ([position fixed, top (vh 55), left (vw 24)])] [img_uuu],
+                                nav [css ([position fixed, top (vh 55), left (vw 44)])] [img_uud],
+                                nav [css ([position fixed, top (vh 55), left (vw 64)])] [img_udu],
+                                nav [css ([position fixed, top (vh 55), left (vw 84)])] [img_udd],
+                                nav [css ([position fixed, top (vh 70), left (vw 24)])] [img_duu],
+                                nav [css ([position fixed, top (vh 70), left (vw 44)])] [img_dud],
+                                nav [css ([position fixed, top (vh 70), left (vw 64)])] [img_ddu],
+                                nav [css ([position fixed, top (vh 70), left (vw 84)])] [img_ddd],
+                                div [css ([position fixed, top (vh 57), left (vw 11)] ++ my_font3 12)] [text "Probability of state |000>"],
+                                div [css ([position fixed, top (vh 57), left (vw 31)] ++ my_font3 12)] [text "Probability of state |001>"],
+                                div [css ([position fixed, top (vh 57), left (vw 51)] ++ my_font3 12)] [text "Probability of state |010>"],
+                                div [css ([position fixed, top (vh 57), left (vw 71)] ++ my_font3 12)] [text "Probability of state |011>"],
+                                div [css ([position fixed, top (vh 72), left (vw 11)] ++ my_font3 12)] [text "Probability of state |100>"],
+                                div [css ([position fixed, top (vh 72), left (vw 31)] ++ my_font3 12)] [text "Probability of state |101>"],
+                                div [css ([position fixed, top (vh 72), left (vw 51)] ++ my_font3 12)] [text "Probability of state |110>"],
+                                div [css ([position fixed, top (vh 72), left (vw 71)] ++ my_font3 12)] [text "Probability of state |111>"],
 
-                                div [css ([position fixed, top (vh 67), left (vw 28)] ++ my_font)] [text val1],                    
-                                div [css ([position fixed, top (vh 67), left (vw 50)] ++ my_font)] [text val2],  
-                                div [css ([position fixed, top (vh 82), left (vw 28)] ++ my_font)] [text val3],  
-                                div [css ([position fixed, top (vh 82), left (vw 50)] ++ my_font)] [text val4],
-                                div [css ([position fixed, top (vh 87), left (vw 28)] ++ my_font)] [text val5],                    
-                                div [css ([position fixed, top (vh 87), left (vw 50)] ++ my_font)] [text val6],  
-                                div [css ([position fixed, top (vh 92), left (vw 28)] ++ my_font)] [text val7],  
-                                div [css ([position fixed, top (vh 92), left (vw 50)] ++ my_font)] [text val8]
+                                div [css ([position fixed, top (vh 59), left (vw 15)] ++ my_font3 20)] [text val1],                    
+                                div [css ([position fixed, top (vh 59), left (vw 35)] ++ my_font3 20)] [text val2],  
+                                div [css ([position fixed, top (vh 59), left (vw 55)] ++ my_font3 20)] [text val3],  
+                                div [css ([position fixed, top (vh 59), left (vw 75)] ++ my_font3 20)] [text val4],
+                                div [css ([position fixed, top (vh 74), left (vw 15)] ++ my_font3 20)] [text val5],                    
+                                div [css ([position fixed, top (vh 74), left (vw 35)] ++ my_font3 20)] [text val6],  
+                                div [css ([position fixed, top (vh 74), left (vw 55)] ++ my_font3 20)] [text val7],  
+                                div [css ([position fixed, top (vh 74), left (vw 75)] ++ my_font3 20)] [text val8]
                             ]
                       _ -> Debug.todo "impossible"
-            4 -> [
-                    instruction_txt [css [instruction_description_style]] [text instruction_description]
-                  ]
+            4 -> [ nav [css [position fixed, top (vh 7), left (vw 30)]] [img_exm] 
+                ] 
+                 ++ List.map (\((x,y,clr), s) -> 
+                    instruction_txt clr [css [instruction_description_style, position fixed, top (vh x), left (vw y)]] [text s]
+                    ) instruction_description
             _ -> Debug.todo "page can only be 1,2,3"
     in 
     nav []
