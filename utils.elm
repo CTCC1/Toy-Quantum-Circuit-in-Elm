@@ -42,7 +42,7 @@ verify_rotate (x,y,z) = (ifc x && ifc y) || ((ifc x) && (y == "null") && (z == "
 verify3D : Array (String, String, String) -> Bool
 verify3D ls = 
   let 
-    invalid (x,y,z) = verify_rotate (x,y,z) || verify_rotate (x,z,y) || verify_rotate (y,z,x) || verify_rotate (y,x,z) || verify_rotate (z,y,x) || verify_rotate (z,x,y)
+    invalid (x,y,z) = x == "cu" || z == "cd" || verify_rotate (x,y,z) || verify_rotate (x,z,y) || verify_rotate (y,z,x) || verify_rotate (y,x,z) || verify_rotate (z,y,x) || verify_rotate (z,x,y)
   in 
     isEmpty (filter invalid ls)
 
