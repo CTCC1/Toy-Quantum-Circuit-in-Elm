@@ -223,8 +223,8 @@ view model =
         img_out3          = create_box "./pics/measure.jpg"
 
         img_uu            = create_box "./pics/result1.jpg"
-        img_du            = create_box "./pics/result2.jpg"
-        img_ud            = create_box "./pics/result3.jpg"
+        img_du            = create_box "./pics/result3.jpg"
+        img_ud            = create_box "./pics/result2.jpg"
         img_dd            = create_box "./pics/result4.jpg"
 
         img_uuu           = create_box "./pics/000.jpg"
