@@ -35,7 +35,7 @@ btn =
     styled button
         [ margin (px 12)
         , fontSize (px 12)
-        , color theme.primary
+        , color theme.third
         , hover
             [ backgroundColor theme.secondary
             , textDecoration underline

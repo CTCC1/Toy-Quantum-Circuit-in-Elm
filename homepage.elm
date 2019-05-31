@@ -24,8 +24,9 @@ import Operators exposing (..)
 
 type alias Model = { curr_x:Int, 
                      curr_y:Int, 
-                     input_x : Float, -- Float,
+                     input_x : Float,
                      input_y : Float,
+                     input_z : Float, 
                      pic_list : Array String, 
                      page : Int,
                      onselected : Int, 
@@ -36,8 +37,9 @@ type alias Model = { curr_x:Int,
 
 initModel = { curr_x = -1, 
               curr_y = -1, 
-              input_x = 0, 
-              input_y = 0, 
+              input_x = -1, 
+              input_y = -1, 
+              input_z = -1,
               pic_list = Array.initialize num_grid (always "null"),
               page = 1,
               onselected = 0,
@@ -51,7 +53,7 @@ initModel = { curr_x = -1,
 type Msg = Noop | Reset | Escape | 
             Selected Int Int | UnSelected Int Int String | 
             Checkcircuit | Runcircuit  | Debug String |
-            Page1 | Page2 | Page3 |
+            Page1 | Page2 | Page3 | Page4 |
             UpdateField String String
 
 
@@ -60,13 +62,11 @@ update msg model =
   case msg of
     Noop -> (model, Cmd.none)
     Reset -> (initModel, Cmd.none)
-    Escape -> ({model | curr_x = -1,
-                        curr_y = -1, 
-                        pic_list = Array.initialize num_grid (always "null")
-                }, Cmd.none)
-    Page1 -> ({model | page = 1}, Cmd.none)
-    Page2 -> ({model | page = 2}, Cmd.none)
-    Page3 -> ({model | page = 3}, Cmd.none)
+    Escape -> ({initModel | page = model.page}, Cmd.none)
+    Page1 -> ({initModel | page = 1}, Cmd.none)
+    Page2 -> ({initModel | page = 2}, Cmd.none)
+    Page3 -> ({initModel | page = 3}, Cmd.none)
+    Page4 -> ({initModel | page = 4}, Cmd.none)
     Selected x y -> 
         ({model | onselected = 1, checked = False, curr_x = x, curr_y = y}, Cmd.none)
     UnSelected x y gate ->
@@ -74,16 +74,23 @@ update msg model =
                   pic_list = set (calc_pos x y) gate model.pic_list}, Cmd.none)
     Checkcircuit -> 
       let 
-        tupe_lst = convert_pairs model.pic_list
-        flag = verify2D tupe_lst
+          flag = if model.page == 2 then 
+                    verify2D (convert_pairs model.pic_list)
+                  else 
+                    verify3D (convert_tri model.pic_list)
       in
         ({model | onselected = 0, checked = flag}, Cmd.none)
     Runcircuit -> 
-        let 
-            arr = convert_pairs model.pic_list
-            mug = Debug.toString arr
-        in 
-            ({model | onselected = 2, ans = measure2Q (apply2Q (model.input_x, model.input_y) arr), debug = mug}, Cmd.none)
+        if (model.checked == True) then 
+          let 
+            real_ans = if model.page == 2 then 
+                        measure2Q (apply2Q (model.input_x, model.input_y) (convert_pairs model.pic_list))
+                       else 
+                        measure3Q (apply3Q (model.input_x, model.input_y, model.input_z) (convert_tri model.pic_list))
+          in 
+            ({model | onselected = 2, ans = real_ans, debug = Debug.toString (convert_tri model.pic_list)}, Cmd.none)
+        else 
+          (model, Cmd.none)
     UpdateField s fd -> 
       let 
         xs = parseFloat s
@@ -91,6 +98,7 @@ update msg model =
         case fd of 
           "x" -> ({model | input_x = xs, onselected = 0}, Cmd.none)
           "y" -> ({model | input_y = xs, onselected = 0}, Cmd.none)
+          "z" -> ({model | input_z = xs, onselected = 0}, Cmd.none)
           _ -> Debug.todo "bad input"
     Debug s -> ({model | debug = s}, Cmd.none)
     -- _ -> (model, Cmd.none)
@@ -99,7 +107,7 @@ update msg model =
 create_img str x y curr_pic = 
       img
         [ src str
-          , css (pic_style (if (x,y) == curr_pic then theme.secondary else rgb 255 255 255))
+          , css (pic_style (if (x,y) /= curr_pic then rgb 255 255 255 else theme.fourth))
           , onClick (Selected x y)
           , onDoubleClick (Noop)
           ]
@@ -133,21 +141,31 @@ create_cat file =
           ]
         []
 
+my_font1 my_pred = [fontFamilies ["monospace"], if my_pred then color theme.green else color theme.red, fontSize (px 16)]
+my_font = [fontFamilies ["monospace"], color theme.third, fontSize (px 16)]
+
 decodeButtonText : Decode.Decoder String
 decodeButtonText =
   Decode.at ["target", "innerText" ] Decode.string
 
-submitForm1 = frm [css [position fixed, top (vh 17), left (vw 39), fontFamilies ["monospace"]]]
+submitForm1 x y = frm [css [position fixed, top (vh x), left (vw y), fontFamilies ["monospace"]]]
                 [ label []
                     [ text "1st qubit |0> state a1: "
                         , input [ type_ "text", placeholder "Float between 0 and 1", name "val_1", onInput (\str -> UpdateField str "x") ] []
                     ]
                 ]
 
-submitForm2 = frm [css [position fixed, top (vh 20), left (vw 39), fontFamilies ["monospace"]]] 
+submitForm2 x y = frm [css [position fixed, top (vh x), left (vw y), fontFamilies ["monospace"]]] 
                 [ label []
                     [ text "2nd qubit |0> state a2: "
                       , input [ type_ "input_val_2", placeholder "Float between 0 and 1", name "val_2", onInput (\str -> UpdateField str "y")] []
+                    ]
+                ]
+
+submitForm3 x y = frm [css [position fixed, top (vh x), left (vw y), fontFamilies ["monospace"]]] 
+                [ label []
+                    [ text "3rd qubit |0> state a3: "
+                      , input [ type_ "input_val_3", placeholder "Float between 0 and 1", name "val_3", onInput (\str -> UpdateField str "z")] []
                     ]
                 ]
 
@@ -158,7 +176,6 @@ view model =
           , ("top", "50%")
           , ("left", "50%")
           , ("transform", "translate(-50%, -50%)")
-          , ("Color", "green")
           ]
         curr_pic = (model.curr_x, model.curr_y)
 
@@ -173,6 +190,12 @@ view model =
         img13  = create_img (my_get 1 3 model.pic_list) 1 3 curr_pic
         img14  = create_img (my_get 1 4 model.pic_list) 1 4 curr_pic
 
+        img20  = create_img (my_get 2 0 model.pic_list) 2 0 curr_pic
+        img21  = create_img (my_get 2 1 model.pic_list) 2 1 curr_pic
+        img22  = create_img (my_get 2 2 model.pic_list) 2 2 curr_pic
+        img23  = create_img (my_get 2 3 model.pic_list) 2 3 curr_pic
+        img24  = create_img (my_get 2 4 model.pic_list) 2 4 curr_pic
+
         img_cat = create_cat "cat.jpg"
         imgx_select       = create_slt "xgate.jpg" "x" curr_pic
         imgy_select       = create_slt "ygate.jpg" "y" curr_pic
@@ -181,10 +204,14 @@ view model =
         imgc_select       = create_slt "cgate.jpg" "c" curr_pic
         imgnull_select    = create_slt "test.jpg"  "null" curr_pic
         imgmeasure_select = create_slt "measure.jpg" "m" curr_pic
+
         img_in            = create_box "input1.jpg"
         img_in2           = create_box "input2.jpg"
+        img_in3           = create_box "input3.jpg"
         img_out           = create_box "measure.jpg"
         img_out2          = create_box "measure.jpg"
+        img_out3          = create_box "measure.jpg"
+
         img_uu            = create_box "result1.jpg"
         img_du            = create_box "result2.jpg"
         img_ud            = create_box "result3.jpg"
@@ -192,12 +219,22 @@ view model =
 
         (val1, val2) = 
             case model.ans of 
-                x::y::_ -> (R.round 4 x, R.round 4 y)
+                x::y::_ -> (R.round 4 (x^2), R.round 4 (y^2))
                 _ -> ("", "")
 
         (val3, val4) = 
             case model.ans of 
-                _::_::x::y::_ -> (R.round 4 x, R.round 4 y)
+                _::_::x::y::_ -> (R.round 4 (x^2), R.round 4 (y^2))
+                _ -> ("", "")
+
+        (val5, val6) = 
+            case model.ans of 
+                _::_::_::_::x::y::_ -> (R.round 4 (x^2), R.round 4 (y^2))
+                _ -> ("", "")
+
+        (val7, val8) = 
+            case model.ans of 
+                _::_::_::_::_::_::x::y::_ -> (R.round 4 (x^2), R.round 4 (y^2))
                 _ -> ("", "")
 
         background =   div [ css 
@@ -207,15 +244,16 @@ view model =
                             ] 
                             []
     in
-    let debug_message = [text (Debug.toString model.ans ++ Debug.toString model.debug )]
-        debug_message_1 = [text (List.foldr (\a -> \b -> a ++ " " ++ b) "" <| toList(model.pic_list))]
+    let debug_message = [text (Debug.toString model.ans)]
+        debug_message_1 = [text model.debug]
     in
     let 
         header = 
           [
-            btn [ css [position fixed, top (vh 20), left (vw 12)], onClick Page1 ] [ text "Homepage" ],
-            btn [ css [position fixed, top (vh 35), left (vw 12)], onClick Page2 ] [ text "Design your circuit" ],
-            btn [ css [position fixed, top (vh 50), left (vw 12)], onClick Page3 ] [ text "How to run circuit" ]
+            btn [ css [position fixed, top (vh 10), left (vw 10)], onClick Page1 ] [ text "Homepage" ],
+            btn [ css [position fixed, top (vh 15), left (vw 10)], onClick Page2 ] [ text "Design your circuit - 2D" ],
+            btn [ css [position fixed, top (vh 20), left (vw 10)], onClick Page3 ] [ text "Design your circuit - 3D" ],
+            btn [ css [position fixed, top (vh 25), left (vw 10)], onClick Page4 ] [ text "How to run circuit" ]
           ] 
         display = 
           case model.page of 
@@ -225,42 +263,94 @@ view model =
                     homepage_txt [css [homepage_description_style, position fixed, top (vh x), left (vw y)]] [text s]
                     ) homepage_description
             2 -> [
-                    submitForm1,
-                    submitForm2,
-                    nav [css [position fixed, top (vh 28), left (vw 30)]] [img_in, img00, img01, img02, img03, img04, img_out],
-                    nav [css [position fixed, top (vh 44), left (vw 30)]] [img_in2, img10, img11, img12, img13, img14, img_out2]
+                    submitForm1 35 7,
+                    submitForm2 40 7,
+                    nav [css [position fixed, top (vh 14), left (vw 30)]] [img_in, img00, img01, img02, img03, img04, img_out],
+                    nav [css [position fixed, top (vh 28), left (vw 30)]] [img_in2, img10, img11, img12, img13, img14, img_out2]
                     ] ++ 
                     case model.onselected of
                       1 -> [
                                 nav [css [position fixed, top (vh 63), left (vw 30)]] [imgx_select, imgz_select, imgnull_select, imgh_select, imgc_select]
                             ]
                       0 -> [
-                                btn [ onClick Escape,       css [position fixed, top (vh 63), left (vw 30)]] [ text "Click to reset grid" ],
+                                btn [ onClick Escape,       css [position fixed, top (vh 45), left (vw 12)]] [ text "Click to reset" ],
                                 btn [ onClick Checkcircuit, css [position fixed, top (vh 63), left (vw 42)]] [ text "Click to check circuit"],
-                                btn [ onClick Runcircuit,   css [position fixed, top (vh 63), left (vw 54)]] [ text "Click to run circuit"]
-                            ]
+                                btn [ onClick Runcircuit,   css [position fixed, top (vh 63), left (vw 54)]] [ text "Click to run circuit"],
+                                nav [css ([position fixed, top (vh 61), left (vw 7)] ++ my_font1 (True))] [text "Checklist:"],
+                                nav [css ([position fixed, top (vh 64), left (vw 7)] ++ my_font1 (model.input_x <= 1 && model.input_x >=0))] [text "1. Value a1 is between 0 and 1"],
+                                nav [css ([position fixed, top (vh 67), left (vw 7)] ++ my_font1 (model.input_y <= 1 && model.input_y >=0))] [text "2. Value a2 is between 0 and 1"],
+                                nav [css ([position fixed, top (vh 70), left (vw 7)] ++ my_font1 (model.checked == True))] [text "3. Circuit is checked before run"]
+                             ]
                       2 -> [                    
-                                nav [css [position fixed, top (vh 63), left (vw 43), fontFamilies ["monospace"]]] [img_uu],
-                                nav [css [position fixed, top (vh 63), left (vw 65), fontFamilies ["monospace"]]] [img_ud],
-                                nav [css [position fixed, top (vh 78), left (vw 43), fontFamilies ["monospace"]]] [img_du],
-                                nav [css [position fixed, top (vh 78), left (vw 65), fontFamilies ["monospace"]]] [img_dd],
-                                div [css [position fixed, top (vh 65), left (vw 28), fontFamilies ["monospace"]]] [text "Probability of state |00>"],
-                                div [css [position fixed, top (vh 65), left (vw 50), fontFamilies ["monospace"]]] [text "Probability of state |01>"],
-                                div [css [position fixed, top (vh 80), left (vw 28), fontFamilies ["monospace"]]] [text "Probability of state |10>"],
-                                div [css [position fixed, top (vh 80), left (vw 50), fontFamilies ["monospace"]]] [text "Probability of state |11>"],
-                                div [css [position fixed, top (vh 67), left (vw 28), fontSize (px 16), fontFamilies ["monospace"]]] [text val1],                    
-                                div [css [position fixed, top (vh 67), left (vw 50), fontSize (px 16), fontFamilies ["monospace"]]] [text val2],  
-                                div [css [position fixed, top (vh 82), left (vw 28), fontSize (px 16), fontFamilies ["monospace"]]] [text val3],  
-                                div [css [position fixed, top (vh 82), left (vw 50), fontSize (px 16), fontFamilies ["monospace"]]] [text val4]
+                                nav [css ([position fixed, top (vh 53), left (vw 43)])] [img_uu],
+                                nav [css ([position fixed, top (vh 53), left (vw 69)])] [img_ud],
+                                nav [css ([position fixed, top (vh 68), left (vw 43)])] [img_du],
+                                nav [css ([position fixed, top (vh 68), left (vw 69)])] [img_dd],
+
+                                div [css ([position fixed, top (vh 55), left (vw 25)] ++ my_font)] [text "Probability of state |00>"],
+                                div [css ([position fixed, top (vh 55), left (vw 52)] ++ my_font)] [text "Probability of state |01>"],
+                                div [css ([position fixed, top (vh 70), left (vw 25)] ++ my_font)] [text "Probability of state |10>"],
+                                div [css ([position fixed, top (vh 70), left (vw 52)] ++ my_font)] [text "Probability of state |11>"],
+
+                                div [css ([position fixed, top (vh 57), left (vw 30)] ++ my_font)] [text val1],                    
+                                div [css ([position fixed, top (vh 57), left (vw 57)] ++ my_font)] [text val2],  
+                                div [css ([position fixed, top (vh 72), left (vw 30)] ++ my_font)] [text val3],  
+                                div [css ([position fixed, top (vh 72), left (vw 57)] ++ my_font)] [text val4]
                             ]
                       _ -> Debug.todo "impossible"
             3 -> [
+                    submitForm1 35 7,
+                    submitForm2 40 7,
+                    submitForm3 45 7,
+                    nav [css [position fixed, top (vh 14), left (vw 30)]] [img_in, img00, img01, img02, img03, img04, img_out],
+                    nav [css [position fixed, top (vh 28), left (vw 30)]] [img_in2, img10, img11, img12, img13, img14, img_out2],
+                    nav [css [position fixed, top (vh 42), left (vw 30)]] [img_in3, img20, img21, img22, img23, img24, img_out3]
+                    ] ++ 
+                    case model.onselected of
+                      1 -> [
+                                nav [css [position fixed, top (vh 63), left (vw 30)]] [imgx_select, imgz_select, imgnull_select, imgh_select, imgc_select]
+                            ]
+                      0 -> [
+                                btn [ onClick Escape,       css [position fixed, top (vh 50), left (vw 12)]] [ text "Click to reset" ],
+                                btn [ onClick Checkcircuit, css [position fixed, top (vh 63), left (vw 42)]] [ text "Click to check circuit"],
+                                btn [ onClick Runcircuit,   css [position fixed, top (vh 63), left (vw 54)]] [ text "Click to run circuit"],
+                                nav [css ([position fixed, top (vh 61), left (vw 7)] ++ my_font1 (True))] [text "Checklist:"],
+                                nav [css ([position fixed, top (vh 64), left (vw 7)] ++ my_font1 (model.input_x <= 1 && model.input_x >=0))] [text "1. Value a1 is between 0 and 1"],
+                                nav [css ([position fixed, top (vh 67), left (vw 7)] ++ my_font1 (model.input_y <= 1 && model.input_y >=0))] [text "2. Value a2 is between 0 and 1"],
+                                nav [css ([position fixed, top (vh 70), left (vw 7)] ++ my_font1 (model.input_z <= 1 && model.input_z >=0))] [text "3. Value a3 is between 0 and 1"],
+                                nav [css ([position fixed, top (vh 73), left (vw 7)] ++ my_font1 (model.checked == True))] [text "4. Circuit is checked before run"]
+                             ]
+                      2 -> [                    
+                                nav [css ([position fixed, top (vh 63), left (vw 43)])] [img_uu],
+                                nav [css ([position fixed, top (vh 63), left (vw 65)])] [img_ud],
+                                nav [css ([position fixed, top (vh 78), left (vw 43)])] [img_du],
+                                nav [css ([position fixed, top (vh 78), left (vw 65)])] [img_dd],
+                                div [css ([position fixed, top (vh 65), left (vw 28)] ++ my_font)] [text "Probability of state |000>"],
+                                div [css ([position fixed, top (vh 65), left (vw 50)] ++ my_font)] [text "Probability of state |001>"],
+                                div [css ([position fixed, top (vh 80), left (vw 28)] ++ my_font)] [text "Probability of state |010>"],
+                                div [css ([position fixed, top (vh 80), left (vw 50)] ++ my_font)] [text "Probability of state |011>"],
+                                div [css ([position fixed, top (vh 65), left (vw 28)] ++ my_font)] [text "Probability of state |100>"],
+                                div [css ([position fixed, top (vh 65), left (vw 50)] ++ my_font)] [text "Probability of state |101>"],
+                                div [css ([position fixed, top (vh 80), left (vw 28)] ++ my_font)] [text "Probability of state |110>"],
+                                div [css ([position fixed, top (vh 80), left (vw 50)] ++ my_font)] [text "Probability of state |111>"],
+
+                                div [css ([position fixed, top (vh 67), left (vw 28)] ++ my_font)] [text val1],                    
+                                div [css ([position fixed, top (vh 67), left (vw 50)] ++ my_font)] [text val2],  
+                                div [css ([position fixed, top (vh 82), left (vw 28)] ++ my_font)] [text val3],  
+                                div [css ([position fixed, top (vh 82), left (vw 50)] ++ my_font)] [text val4],
+                                div [css ([position fixed, top (vh 87), left (vw 28)] ++ my_font)] [text val5],                    
+                                div [css ([position fixed, top (vh 87), left (vw 50)] ++ my_font)] [text val6],  
+                                div [css ([position fixed, top (vh 92), left (vw 28)] ++ my_font)] [text val7],  
+                                div [css ([position fixed, top (vh 92), left (vw 50)] ++ my_font)] [text val8]
+                            ]
+                      _ -> Debug.todo "impossible"
+            4 -> [
                     instruction_txt [css [instruction_description_style]] [text instruction_description]
                   ]
             _ -> Debug.todo "page can only be 1,2,3"
     in 
     nav []
-      ( [background] ++ header ++ display )
+      (  [background]++ header ++ display )
 
 
 -- SUBSCRIPTIONS
