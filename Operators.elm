@@ -128,21 +128,14 @@ prep2Q (a1,a2) =
 apply2Q : (Float, Float) -> Array (String, String)  -> M.Matrix Float
 apply2Q init funcs = apply2Qhelper (prep2Q init) (strsToGates2Q funcs)
 
-type alias Result2Q =
-  { downdown: Float
-  , downup: Float
-  , updown: Float
-  , upup: Float
-  }
-
-measure2Q : M.Matrix Float -> Result2Q
+measure2Q : M.Matrix Float -> List Float
 measure2Q r =
   case M.size r of
     (4, 1) -> 
       let
         rarr = fromList <| M.toList <| r
       in
-      { downdown = unsafeGet 0 rarr, downup = unsafeGet 1 rarr, updown = unsafeGet 2 rarr, upup = unsafeGet 3 rarr}
+        [unsafeGet 0 rarr, unsafeGet 1 rarr, unsafeGet 2 rarr, unsafeGet 3 rarr]
     _      -> Debug.todo "impossible"
 
 ---standard bipartite spin-1/2 basis: {00,01,10,11}---
