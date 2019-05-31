@@ -196,26 +196,28 @@ view model =
         img23  = create_img (my_get 2 3 model.pic_list) 2 3 curr_pic
         img24  = create_img (my_get 2 4 model.pic_list) 2 4 curr_pic
 
-        img_cat = create_cat "cat.jpg"
-        imgx_select       = create_slt "xgate.jpg" "x" curr_pic
-        imgy_select       = create_slt "ygate.jpg" "y" curr_pic
-        imgz_select       = create_slt "zgate.jpg" "z" curr_pic
-        imgh_select       = create_slt "hgate.jpg" "h" curr_pic
-        imgc_select       = create_slt "cgate.jpg" "c" curr_pic
-        imgnull_select    = create_slt "test.jpg"  "null" curr_pic
-        imgmeasure_select = create_slt "measure.jpg" "m" curr_pic
+        img_cat = create_cat "./pics/cat.jpg"
+        imgx_select       = create_slt "./pics/xgate.jpg" "x" curr_pic
+        imgy_select       = create_slt "./pics/ygate.jpg" "y" curr_pic
+        imgz_select       = create_slt "./pics/zgate.jpg" "z" curr_pic
+        imgh_select       = create_slt "./pics/hgate.jpg" "h" curr_pic
+        imgc_select       = create_slt "./pics/cgate.jpg" "c" curr_pic
+        imgcu_select      = create_slt "./pics/cgate-rev.jpg" "cu" curr_pic
+        imgcd_select      = create_slt "./pics/cgate.jpg" "cd" curr_pic          
+        imgnull_select    = create_slt "./pics/test.jpg"  "null" curr_pic
+        imgmeasure_select = create_slt "./pics/measure.jpg" "m" curr_pic
 
-        img_in            = create_box "input1.jpg"
-        img_in2           = create_box "input2.jpg"
-        img_in3           = create_box "input3.jpg"
-        img_out           = create_box "measure.jpg"
-        img_out2          = create_box "measure.jpg"
-        img_out3          = create_box "measure.jpg"
+        img_in            = create_box "./pics/input1.jpg"
+        img_in2           = create_box "./pics/input2.jpg"
+        img_in3           = create_box "./pics/input3.jpg"
+        img_out           = create_box "./pics/measure.jpg"
+        img_out2          = create_box "./pics/measure.jpg"
+        img_out3          = create_box "./pics/measure.jpg"
 
-        img_uu            = create_box "result1.jpg"
-        img_du            = create_box "result2.jpg"
-        img_ud            = create_box "result3.jpg"
-        img_dd            = create_box "result4.jpg"
+        img_uu            = create_box "./pics/result1.jpg"
+        img_du            = create_box "./pics/result2.jpg"
+        img_ud            = create_box "./pics/result3.jpg"
+        img_dd            = create_box "./pics/result4.jpg"
 
         (val1, val2) = 
             case model.ans of 
@@ -245,7 +247,7 @@ view model =
                             []
     in
     let debug_message = [text (Debug.toString model.ans)]
-        debug_message_1 = [text model.debug]
+        debug_message_1 = [text (Debug.toString (convert_tri model.pic_list))]
     in
     let 
         header = 
@@ -308,7 +310,7 @@ view model =
                     ] ++ 
                     case model.onselected of
                       1 -> [
-                                nav [css [position fixed, top (vh 63), left (vw 30)]] [imgx_select, imgz_select, imgnull_select, imgh_select, imgc_select]
+                                nav [css [position fixed, top (vh 63), left (vw 30)]] ([imgx_select, imgz_select, imgnull_select, imgh_select] ++ (if model.page == 2 then [imgc_select] else [imgcu_select, imgcd_select]))
                             ]
                       0 -> [
                                 btn [ onClick Escape,       css [position fixed, top (vh 50), left (vw 12)]] [ text "Click to reset" ],
