@@ -7,16 +7,19 @@ import Html.Attributes as Attr
 import Html.Styled exposing (..)
 import Css exposing (..)
 import Html.Styled.Attributes exposing (css, href, src)
-import Html.Styled.Events exposing (onClick, onDoubleClick, onInput)
+import Html.Styled.Events exposing (onClick, onDoubleClick, onInput, onMouseOver)
 import Array exposing (..)
 import Html.String exposing (toString)
-import Html.Styled.Attributes exposing (action, method, class, type_, placeholder, name, autofocus, width, height)
+import Html.Styled.Attributes exposing (action, method, class, type_, placeholder, name, autofocus, width, height, title)
+import Round as R
+
 -- Importing modules
 import Settings exposing (..)
 import Utils exposing (..)
 import Homepage exposing (..)
 import Instruction exposing (..)
 import Circuit exposing (..)
+import Operators exposing (..)
 -- MODEL
 
 type alias Model = { curr_x:Int, 
@@ -25,8 +28,9 @@ type alias Model = { curr_x:Int,
                      input_y : Float,
                      pic_list : Array String, 
                      page : Int,
-                     onselected : Bool,
+                     onselected : Int, 
                      checked : Bool,
+                     ans : List Float,
                      debug : String
                    }
 
@@ -36,8 +40,9 @@ initModel = { curr_x = -1,
               input_y = 0, 
               pic_list = Array.initialize num_grid (always "null"),
               page = 1,
-              onselected = False,
+              onselected = 0,
               checked = False,
+              ans = [],
               debug = ""
             }
 
@@ -63,24 +68,29 @@ update msg model =
     Page2 -> ({model | page = 2}, Cmd.none)
     Page3 -> ({model | page = 3}, Cmd.none)
     Selected x y -> 
-        ({model | onselected = True, checked = False, curr_x = x, curr_y = y}, Cmd.none)
+        ({model | onselected = 1, checked = False, curr_x = x, curr_y = y}, Cmd.none)
     UnSelected x y gate ->
-        ({model | onselected = False,
+        ({model | onselected = 0,
                   pic_list = set (calc_pos x y) gate model.pic_list}, Cmd.none)
     Checkcircuit -> 
       let 
         tupe_lst = convert_pairs model.pic_list
         flag = verify2D tupe_lst
       in
-        ({model | checked = flag}, Cmd.none)
-    Runcircuit -> Debug.todo "todo"
+        ({model | onselected = 0, checked = flag}, Cmd.none)
+    Runcircuit -> 
+        let 
+            arr = convert_pairs model.pic_list
+            mug = Debug.toString arr
+        in 
+            ({model | onselected = 2, ans = measure2Q (apply2Q (model.input_x, model.input_y) arr), debug = mug}, Cmd.none)
     UpdateField s fd -> 
       let 
         xs = parseFloat s
       in 
         case fd of 
-          "x" -> ({model | input_x = xs}, Cmd.none)
-          "y" -> ({model | input_y = xs}, Cmd.none)
+          "x" -> ({model | input_x = xs, onselected = 0}, Cmd.none)
+          "y" -> ({model | input_y = xs, onselected = 0}, Cmd.none)
           _ -> Debug.todo "bad input"
     Debug s -> ({model | debug = s}, Cmd.none)
     -- _ -> (model, Cmd.none)
@@ -89,7 +99,7 @@ update msg model =
 create_img str x y curr_pic = 
       img
         [ src str
-          , css (pic_style (if (x,y) == curr_pic then theme.secondary else theme.third))
+          , css (pic_style (if (x,y) == curr_pic then theme.secondary else rgb 255 255 255))
           , onClick (Selected x y)
           , onDoubleClick (Noop)
           ]
@@ -105,45 +115,29 @@ create_slt name gate (x, y) =
           ]
         []
 
+create_box file = 
+      img
+        [ src file
+          , width 100
+          , height 100
+          , css (select_pic_style)
+          ]
+        []
+
 decodeButtonText : Decode.Decoder String
 decodeButtonText =
   Decode.at ["target", "innerText" ] Decode.string
 
-viewForm : Model -> Html Msg
-viewForm model =
-    frm []
-        [ label []
-            [ text "Enter value for y"
-            , input [ type_ "text", 
-                      placeholder "Enter value for x", 
-                      name "Enter value for x", 
-                      autofocus True,
-                      onInput (\str -> UpdateField str "x") 
-                    ]
-              []
-            ]
-        , label []
-            [ text "Enter value for y"
-            , input [ type_ "input_val_2", 
-                      placeholder "Enter value for y", 
-                      name "Enter value for y",
-                      autofocus True,
-                      onInput (\str -> UpdateField str "y")
-                    ] 
-              []
-            ]
-        ]
-
-submitForm1 = frm []
+submitForm1 = frm [css [position fixed, top (vh 17), left (vw 39), fontFamilies ["monospace"]]]
                 [ label []
-                  [ text "input_val_1"
-                    , input [ type_ "text", placeholder "val_1", name "val_1", onInput (\str -> UpdateField str "x") ] []
+                    [ text "1st qubit |0> state a1: "
+                        , input [ type_ "text", placeholder "val_1", name "val_1", onInput (\str -> UpdateField str "x") ] []
                     ]
                 ]
 
-submitForm2 = frm [] 
+submitForm2 = frm [css [position fixed, top (vh 20), left (vw 39), fontFamilies ["monospace"]]] 
                 [ label []
-                    [ text "input_val_2"
+                    [ text "2nd qubit |0> state a2: "
                       , input [ type_ "input_val_2", placeholder "val_2", name "val_2", onInput (\str -> UpdateField str "y")] []
                     ]
                 ]
@@ -177,17 +171,35 @@ view model =
         imgc_select       = create_slt "cgate.jpg" "c" curr_pic
         imgnull_select    = create_slt "test.jpg"  "null" curr_pic
         imgmeasure_select = create_slt "measure.jpg" "m" curr_pic
-        -- img_out = create_outbox
+        img_in            = create_box "input1.jpg"
+        img_in2           = create_box "input2.jpg"
+        img_out           = create_box "measure.jpg"
+        img_out2          = create_box "measure.jpg"
+        img_uu            = create_box "result1.jpg"
+        img_du            = create_box "result2.jpg"
+        img_ud            = create_box "result3.jpg"
+        img_dd            = create_box "result4.jpg"
+
+        (val1, val2) = 
+            case model.ans of 
+                x::y::_ -> (R.round 4 x, R.round 4 y)
+                _ -> ("", "")
+
+        (val3, val4) = 
+            case model.ans of 
+                _::_::x::y::_ -> (R.round 4 x, R.round 4 y)
+                _ -> ("", "")
+
     in
-    let debug_message = [text (Debug.toString model.input_x ++ Debug.toString model.input_y)]
+    let debug_message = [text (Debug.toString model.ans ++ Debug.toString model.debug )]
         debug_message_1 = [text (List.foldr (\a -> \b -> a ++ " " ++ b) "" <| toList(model.pic_list))]
     in
     let 
         header = 
           [
-            btn [ onClick Page1 ] [ text "Homepage" ],
-            btn [ onClick Page2 ] [ text "Design your circuit" ],
-            btn [ onClick Page3 ] [ text "How to run circuit" ]
+            btn [ css [position fixed, top (vh 5), left (vw 30)], onClick Page1 ] [ text "Homepage" ],
+            btn [ css [position fixed, top (vh 5), left (vw 42)], onClick Page2 ] [ text "Design your circuit" ],
+            btn [ css [position fixed, top (vh 5), left (vw 54)], onClick Page3 ] [ text "How to run circuit" ]
           ] 
         display = 
           case model.page of 
@@ -197,28 +209,40 @@ view model =
             2 -> [
                     submitForm1,
                     submitForm2,
-                    btn [onClick Noop] [text "Click to submit your input"],
-                    nav [] [img00, img01, img02, img03, img04],
-                    nav [] [img10, img11, img12, img13, img14]
+                    nav [css [position fixed, top (vh 28), left (vw 30)]] [img_in, img00, img01, img02, img03, img04, img_out],
+                    nav [css [position fixed, top (vh 44), left (vw 30)]] [img_in2, img10, img11, img12, img13, img14, img_out2]
                     ] ++ 
-                    if model.onselected == True then 
-                      [
-                        nav [] [imgx_select, imgz_select, imgnull_select],
-                        nav [] [imgh_select, imgc_select, imgmeasure_select]
-                      ]
-                    else 
-                      [
-                        btn [ onClick Escape ] [ text "Click to reset grid" ],
-                        btn [ onClick Checkcircuit ] [ text "Click to check circuit"],
-                        btn [ onClick Runcircuit ] [ text "Click to run circuit"]
-                      ]
+                    case model.onselected of
+                      1 -> [
+                                nav [css [position fixed, top (vh 63), left (vw 30)]] [imgx_select, imgz_select, imgnull_select, imgh_select, imgc_select]
+                            ]
+                      0 -> [
+                                btn [ onClick Escape,       css [position fixed, top (vh 63), left (vw 30)]] [ text "Click to reset grid" ],
+                                btn [ onClick Checkcircuit, css [position fixed, top (vh 63), left (vw 42)]] [ text "Click to check circuit"],
+                                btn [ onClick Runcircuit,   css [position fixed, top (vh 63), left (vw 54)]] [ text "Click to run circuit"]
+                            ]
+                      2 -> [                    
+                                nav [css [position fixed, top (vh 63), left (vw 43), fontFamilies ["monospace"]]] [img_uu],
+                                nav [css [position fixed, top (vh 63), left (vw 65), fontFamilies ["monospace"]]] [img_ud],
+                                nav [css [position fixed, top (vh 78), left (vw 43), fontFamilies ["monospace"]]] [img_du],
+                                nav [css [position fixed, top (vh 78), left (vw 65), fontFamilies ["monospace"]]] [img_dd],
+                                div [css [position fixed, top (vh 65), left (vw 28), fontFamilies ["monospace"]]] [text "Probability of state |00>"],
+                                div [css [position fixed, top (vh 65), left (vw 50), fontFamilies ["monospace"]]] [text "Probability of state |01>"],
+                                div [css [position fixed, top (vh 80), left (vw 28), fontFamilies ["monospace"]]] [text "Probability of state |10>"],
+                                div [css [position fixed, top (vh 80), left (vw 50), fontFamilies ["monospace"]]] [text "Probability of state |11>"],
+                                div [css [position fixed, top (vh 67), left (vw 28), fontSize (px 16), fontFamilies ["monospace"]]] [text val1],                    
+                                div [css [position fixed, top (vh 67), left (vw 50), fontSize (px 16), fontFamilies ["monospace"]]] [text val2],  
+                                div [css [position fixed, top (vh 82), left (vw 28), fontSize (px 16), fontFamilies ["monospace"]]] [text val3],  
+                                div [css [position fixed, top (vh 82), left (vw 50), fontSize (px 16), fontFamilies ["monospace"]]] [text val4]
+                            ]
+                      _ -> Debug.todo "impossible"
             3 -> [
                     instruction_txt [css [instruction_description_style]] [text instruction_description]
                   ]
             _ -> Debug.todo "page can only be 1,2,3"
     in 
     nav [css [position fixed, top (vh 10), left (vw 30)]]
-      (debug_message_1 ++ header ++ display )
+      ( header ++ display )
 
 
 -- SUBSCRIPTIONS

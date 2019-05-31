@@ -24,7 +24,7 @@ instruction_txt =
     styled section 
           [ padding (px 20)
           , width (px 500)
-          , color theme.third
+          , color theme.primary
           , border3 (px 5) solid theme.secondary
           , margin (px 12)
           ]

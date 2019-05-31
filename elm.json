@@ -15,7 +15,8 @@
             "elm-community/array-extra": "2.1.0",
             "rtfeldman/elm-css": "16.0.1",
             "zwilias/elm-html-string": "2.0.2",
-            "Punie/elm-matrix": "2.0.0"
+            "Punie/elm-matrix": "2.0.0",
+            "myrho/elm-round": "1.0.4"
         },
         "indirect": {
             "NoRedInk/elm-string-conversions": "1.0.1",
