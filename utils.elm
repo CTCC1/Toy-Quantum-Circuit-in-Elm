@@ -6,13 +6,15 @@ import Array exposing (..)
 
 -- helper functions -- circuit
 to_pic_filename str x = case str of 
-  "null" -> "test.jpg"
-  "x" -> "xgate.jpg"
-  "y" -> "ygate.jpg"
-  "z" -> "zgate.jpg"
-  "h" -> "hgate.jpg"
-  "c" -> if x == 0 then "cgate.jpg" else "cgate-rev.jpg"
-  "m" -> "measure.jpg"
+  "null"  -> "./pics/test.jpg"
+  "x"     -> "./pics/xgate.jpg"
+  "y"     -> "./pics/ygate.jpg"
+  "z"     -> "./pics/zgate.jpg"
+  "h"     -> "./pics/hgate.jpg"
+  "cd"    -> "./pics/cgate.jpg"
+  "cu"    -> "./pics/cgate-rev.jpg"
+  "c"     -> if (x == 0) then "./pics/cgate.jpg" else "./pics/cgate-rev.jpg"
+  "m"     -> "./pics/measure.jpg"
   _ -> Debug.todo "pic not existed!"
 
 calc_pos x y = x * grid_width + y
