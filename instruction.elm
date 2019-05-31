@@ -16,14 +16,14 @@ instruction_description_style =
         [ fontFamilies ["monospace"]
         , fontSize (px 16)
         , fontWeight normal
-        , width (px 500)
+        , width (px 600)
         ]
 
 instruction_txt : List (Attribute msg) -> List (Html msg) -> Html msg
 instruction_txt =
     styled section 
           [ padding (px 20)
-          , width (px 500)
+          , width (px 600)
           , color theme.primary
           , border3 (px 5) solid theme.secondary
           , margin (px 12)

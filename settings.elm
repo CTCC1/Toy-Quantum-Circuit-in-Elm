@@ -12,6 +12,6 @@ num_gate = List.length gate_lst
 theme : { secondary : Color, primary : Color, third : Color }
 theme =
     { primary   = rgb 23 63 95
-    , secondary = rgb 153 238 187
+    , secondary = rgb 245 245 220
     , third     = rgb 32 99 155
     }
