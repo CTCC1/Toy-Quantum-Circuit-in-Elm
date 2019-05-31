@@ -77,11 +77,20 @@ cnot =
     Just xn -> xn
     _       -> Debug.todo "impossible"
 
+notc : M.Matrix Float
+notc =
+  case M.fromLists [[1,0,0,0],[0,0,0,1],[0,0,1,0],[0,1,0,0]] of
+    Just xn -> xn
+    _       -> Debug.todo "impossible"
+
 cz : M.Matrix Float
 cz =
   case M.fromLists [[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,-1]] of
     Just xn -> xn
     _       -> Debug.todo "impossible"
+
+zc : M.Matrix Float
+zc = cz {-cz and zc both only phase 11-}
 
 ch : M.Matrix Float
 ch =
@@ -89,18 +98,24 @@ ch =
     Just xn -> xn
     _       -> Debug.todo "impossible"
 
+hc : M.Matrix Float
+hc = 
+  case M.fromLists [[1,0,0,0],[0,1 / sqrt(2),0,1 / sqrt(2)],[0,0,1,0],[0,1 / sqrt(2),0,-1 / sqrt(2)]] of
+    Just xn -> xn
+    _       -> Debug.todo "impossible"
+
 -- 2 Qubit gate is 4*4 matrix, i.e. Tensor product of 2 2*2 matrices(representing the 1Q gate) --
 strToGate2Q : (String, String) -> M.Matrix Float
 strToGate2Q (str1, str2) =
-  case str1 of
-    "c" ->
-      case str2 of
-        "c" -> Debug.todo "invalid gate, two control in 2Q"
-        "x" -> cnot
-        "z" -> cz
-        "h" -> ch
-        _   -> Debug.todo "invalid gate in strsToGate2Q"
-    _   -> tensorProduct22 (strToGate1Q str1) (strToGate1Q str2) 
+  case (str1, str2) of
+    ("c","c") -> Debug.todo "invalid gate, two control in 2Q"
+    ("c","x") -> cnot
+    ("c","z") -> cz
+    ("c","h") -> ch
+    ("x","c") -> notc
+    ("z","c") -> zc
+    ("h","c") -> hc
+    _         -> tensorProduct22 (strToGate1Q str1) (strToGate1Q str2) 
 
 strsToGates2Q : Array (String, String) -> List (M.Matrix Float)
 strsToGates2Q xs = 
