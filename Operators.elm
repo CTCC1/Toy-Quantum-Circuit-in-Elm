@@ -137,15 +137,21 @@ apply2Qhelper init funcs =
         Just result -> apply2Qhelper result rest
         Nothing     -> Debug.todo "invalid operations in apply2Q"
 
+validP : Float -> Bool
+validP x = (x >= 0) && (x <= 1)
+
 prep2Q : (Float, Float) -> M.Matrix Float
 prep2Q (a1,a2) =
-  let
-    b1 = sqrt(1 - a1 * a1)
-    b2 = sqrt(1 - a2 * a2)
-  in
-    case M.fromLists [[a1*a2], [a1*b2], [a2*b1], [b1*b2]] of
-      Just v -> v
-      _      -> Debug.todo "impossible"
+  if (validP a1) && (validP a2) then
+    let
+      b1 = sqrt(1 - a1 * a1)
+      b2 = sqrt(1 - a2 * a2)
+    in
+      case M.fromLists [[a1*a2], [a1*b2], [a2*b1], [b1*b2]] of
+        Just v -> v
+        _      -> Debug.todo "impossible"
+  else
+    Debug.todo "invalid coefficient"
 
 apply2Q : (Float, Float) -> Array (String, String)  -> M.Matrix Float
 apply2Q init funcs = apply2Qhelper (prep2Q init) (strsToGates2Q funcs)
@@ -395,16 +401,19 @@ apply3Qhelper init funcs =
 
 prep3Q : (Float, Float, Float) -> M.Matrix Float
 prep3Q (a1,a2,a3) =
-  let
-    b1 = sqrt(1 - a1 * a1)
-    b2 = sqrt(1 - a2 * a2)
-    b3 = sqrt(1 - a3 * a3)
-    vector = [ [a1*a2*a3], [a1*a2*b3], [a1*b2*a3], [a1*b2*b3]
-             , [b1*a2*a3], [b1*a2*b3], [b1*b2*a3], [b1*b2*b3]]
-  in
-    case M.fromLists vector of
-      Just v -> v
-      _      -> Debug.todo "prep3Q impossible"
+  if (validP a1) && (validP a2) && (validP a3) then
+    let
+      b1 = sqrt(1 - a1 * a1)
+      b2 = sqrt(1 - a2 * a2)
+      b3 = sqrt(1 - a3 * a3)
+      vector = [ [a1*a2*a3], [a1*a2*b3], [a1*b2*a3], [a1*b2*b3]
+              , [b1*a2*a3], [b1*a2*b3], [b1*b2*a3], [b1*b2*b3]]
+    in
+      case M.fromLists vector of
+        Just v -> v
+        _      -> Debug.todo "prep3Q impossible"
+  else
+    Debug.todo "invalid coefficient"
 
 apply3Q : (Float, Float, Float) -> Array (String, String, String)  -> M.Matrix Float
 apply3Q init funcs = apply3Qhelper (prep3Q init) (strsToGates3Q funcs)
