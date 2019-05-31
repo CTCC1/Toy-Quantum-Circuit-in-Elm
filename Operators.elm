@@ -249,7 +249,7 @@ tensorProduct24 x y =
 {-
    3 Qubit gate is 8*8 matrix, i.e. Tensor product of three 2*2 matrices
    We do not support two control gates like Tofolli at the moment --
-   We use cup and cdown to indicate which adjacent control gate is connected to;
+   We use cu(up) and cd (down) to indicate which adjacent control gate is connected to;
    If we want to do control gate between 1st and 3rd, we demand the 2nd to be "bridge"!
 -}
 
@@ -342,37 +342,37 @@ h1id2c3 =
 strToGate3Q : (String, String, String) -> M.Matrix Float
 strToGate3Q (str1, str2, str3) =
   case (str1, str2, str3) of
-    ("cdown","bridge",_) ->
+    ("cd","bridge",_)  ->
       case str3 of
         "x" -> c1id2x3
         "z" -> c1id2z3
         "h" -> c1id2h3
         _   -> Debug.todo "impossible"
-    (_, "bridge","cup")  ->
+    (_, "bridge","cu") ->
       case str1 of
         "x" -> x1id2c3
         "z" -> z1id2c3
         "h" -> h1id2c3
         _   -> Debug.todo "impossible"
-    ("cdown",_,_)        ->
+    ("cd",_,_)         ->
       case str2 of
         "x" -> tensorProduct42 cnot (strToGate1Q str3)
         "z" -> tensorProduct42 cz   (strToGate1Q str3)
         "h" -> tensorProduct42 ch   (strToGate1Q str3)
         _   -> Debug.todo "impossible"
-    (_,_,"cup")          ->
+    (_,_,"cu")         ->
       case str2 of
         "x" -> tensorProduct24 (strToGate1Q str1) notc
         "z" -> tensorProduct24 (strToGate1Q str1) zc
         "h" -> tensorProduct24 (strToGate1Q str1) hc
         _   -> Debug.todo "impossible"
-    (_,"cup",_)          ->
+    (_,"cu",_)         ->
       case str1 of
         "x" -> tensorProduct42 notc (strToGate1Q str3)
         "z" -> tensorProduct42 zc   (strToGate1Q str3)
         "h" -> tensorProduct42 hc   (strToGate1Q str3)
         _   -> Debug.todo "impossible"
-    (_,"cdown",_)        ->
+    (_,"cd",_)         ->
       case str3 of
         "x" -> tensorProduct24 (strToGate1Q str1) cnot
         "z" -> tensorProduct24 (strToGate1Q str1) cz
