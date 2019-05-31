@@ -1,11 +1,11 @@
 # Toy-Quantum-Circuit-in-Elm
+
 -- STEP 1:
-Click left tab to select whether you would like 2D \\ 3D version of your quantum circuit
+Click left tab to select whether you want to build the quantum circuit with 2 Qubits or 3 Qubits.
 -- STEP 2:
 Design your circuit by clicking locations and selecting gates
 -- STEP 3:
-Change user input by filling in initial state a1, a2 and a3
+Input initial state a1, a2(and a3), the coefficient of 0 state (whose square is the probability of down spin) for each Qubit.
 -- STEP 4:
-Is your circuit correctly designed? Check by ensuring all elements in your checklist goes green!
-FINAL STEP:
-Click run to get your answer for your quantum circuit!
+Is your circuit correctly designed? Check by ensuring every element in your checklist goes green!FINAL -- FINAL STEP:
+Click Run to get the result for your quantum circuit!!

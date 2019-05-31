@@ -6,15 +6,15 @@ import Settings exposing (theme)
 
 
 instruction_description = [ ((40+5, 26, theme.step), "-- STEP 1:")
-                          , ((44+5, 26, theme.gray), "Click left tab to select whether you would like 2D \\ 3D version of your quantum circuit")
+                          , ((44+5, 26, theme.gray), "Click left tab to select whether you want to build the quantum circuit with 2 Qubits or 3 Qubits.")
                           , ((51+5, 26, theme.step), "-- STEP 2:")
                           , ((53+5, 26, theme.gray), "Design your circuit by clicking locations and selecting gates")
                           , ((59+5, 26, theme.step), "-- STEP 3:")
                           , ((61+5, 26, theme.gray), "Input initial state a1, a2(and a3), the coefficient of 0 state (whose square is the probability of down spin) for each Qubit.")
                           , ((67+5, 26, theme.step), "-- STEP 4:")
-                          , ((69+5, 26, theme.gray), "Is your circuit correctly designed? Check by ensuring all elements in your checklist goes green!")  
+                          , ((69+5, 26, theme.gray), "Is your circuit correctly designed? Check by ensuring every element in your checklist goes green!")  
                           , ((77+5, 26, theme.step), "FINAL STEP:")
-                          , ((79+5, 26, theme.gray), "Click run to get your answer for your quantum circuit!!")                        
+                          , ((79+5, 26, theme.gray), "Click Run to get the result for your quantum circuit!!")                        
                         ]
 instruction_description_style = 
     batch
