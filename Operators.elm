@@ -1,10 +1,154 @@
 module Operators exposing (..)
 
-import Array exposing (..)
-
-type Result1D = Qubit  { up :Float, down : Float} | Prob1D { up :Float, down : Float }
+import Array exposing (Array(..), toList, fromList, map, get)
+import Matrix as M
+{- fromLists, dot, toList-}
 
 ---Single Qubit Gates---
+
+id1Q : M.Matrix Float
+id1Q = M.identity 2
+
+xgate1Q : M.Matrix Float
+xgate1Q = 
+  case M.fromLists [[0,1],[1,0]] of
+    Just x -> x
+    _      -> Debug.todo "impossible"
+
+zgate1Q : M.Matrix Float
+zgate1Q = 
+  case M.fromLists [[1,0],[0,-1]] of
+    Just z -> z
+    _      -> Debug.todo "impossible"
+
+hadamard1Q : M.Matrix Float
+hadamard1Q =
+  case M.fromLists [[1 / sqrt(2),1 / sqrt(2)],[1 / sqrt(2),-1 / sqrt(2)]] of
+    Just z -> z
+    _      -> Debug.todo "impossible"
+
+--- Tensor Product between 2 2*2 Matrices, result in 4*4 Matrices ---
+unsafeGet :  Int -> Array Float -> Float
+unsafeGet i arr =
+  case get i arr of
+    Just x -> x
+    Nothing -> Debug.todo "error in unsafeGet"
+
+tensorProduct22 : M.Matrix Float -> M.Matrix Float -> M.Matrix Float
+tensorProduct22 x y = 
+  if M.size x == (2,2) && M.size y == (2,2) then
+    let
+      xarr = fromList <| M.toList <| x
+      yarr = fromList <| M.toList <| y
+      a11 = unsafeGet 0 xarr
+      a12 = unsafeGet 1 xarr
+      a21 = unsafeGet 2 xarr
+      a22 = unsafeGet 3 xarr
+      b11 = unsafeGet 0 yarr
+      b12 = unsafeGet 1 yarr
+      b21 = unsafeGet 2 yarr
+      b22 = unsafeGet 3 yarr
+      result = [[a11*b11, a11*b12, a12*b11, a12*b12], [a11*b21, a11*b22, a12*b21, a12*b22], [a21*b11, a21*b12, a22*b11, a22*b12], [a21*b21, a21*b22, a22*b21, a22*b22]]
+    in
+      case M.fromLists result of
+        Just r  -> r
+        Nothing -> Debug.todo "error in tensorProduct22"
+  else
+    Debug.todo "error in tensorProduct22, wrong matrix size"
+
+---2-Qubit Gates---
+
+id1id2 : M.Matrix Float
+id1id2 = tensorProduct22 id1Q id1Q
+
+strToGate1Q : String -> M.Matrix Float
+strToGate1Q str =
+  case str of
+    "null" -> id1Q
+    "x"    -> xgate1Q
+    "z"    -> zgate1Q
+    "h"    -> hadamard1Q
+    "c"    -> Debug.todo "shouldn't reach there strToGate1Q"
+    _      -> Debug.todo "invalid gate in strToGate1Q"
+
+cnot : M.Matrix Float
+cnot =
+  case M.fromLists [[1,0,0,0],[0,1,0,0],[0,0,0,1],[0,0,1,0]] of
+    Just xn -> xn
+    _       -> Debug.todo "impossible"
+
+cz : M.Matrix Float
+cz =
+  case M.fromLists [[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,-1]] of
+    Just xn -> xn
+    _       -> Debug.todo "impossible"
+
+ch : M.Matrix Float
+ch =
+  case M.fromLists [[1,0,0,0],[0,1,0,0],[0,0,1 / sqrt(2),1 / sqrt(2)],[0,0,1 / sqrt(2),-1 / sqrt(2)]] of
+    Just xn -> xn
+    _       -> Debug.todo "impossible"
+
+-- 2 Qubit gate is 4*4 matrix, i.e. Tensor product of 2 2*2 matrices(representing the 1Q gate) --
+strToGate2Q : (String, String) -> M.Matrix Float
+strToGate2Q (str1, str2) =
+  case str1 of
+    "c" ->
+      case str2 of
+        "c" -> Debug.todo "invalid gate, two control in 2Q"
+        "x" -> cnot
+        "z" -> cz
+        "h" -> ch
+        _   -> Debug.todo "invalid gate in strsToGate2Q"
+    _   -> tensorProduct22 (strToGate1Q str1) (strToGate1Q str2) 
+
+strsToGates2Q : Array (String, String) -> List (M.Matrix Float)
+strsToGates2Q xs = 
+  toList(map strToGate2Q xs)
+
+apply2Qhelper : M.Matrix Float -> List (M.Matrix Float) -> M.Matrix Float
+apply2Qhelper init funcs =
+  case funcs of
+    []      -> init
+    m::rest -> 
+      case (M.dot m init) of
+        Just result -> apply2Qhelper result rest
+        Nothing     -> Debug.todo "invalid operations in apply2Q"
+
+prep2Q : (Float, Float) -> M.Matrix Float
+prep2Q (a1,a2) =
+  let
+    b1 = sqrt(1 - a1 * a1)
+    b2 = sqrt(1 - a2 * a2)
+  in
+    case M.fromLists [[a1*a2], [a1*b2], [a2*b1], [b1*b2]] of
+    Just v -> v
+    _      -> Debug.todo "impossible"
+
+apply2Q : (Float, Float) -> Array (String, String)  -> M.Matrix Float
+apply2Q init funcs = apply2Qhelper (prep2Q init) (strsToGates2Q funcs)
+
+type alias Result2Q =
+  { downdown: Float
+  , downup: Float
+  , updown: Float
+  , upup: Float
+  }
+
+measure2Q : M.Matrix Float -> Result2Q
+measure2Q r =
+  case M.size r of
+    (4, 1) -> 
+      let
+        rarr = fromList <| M.toList <| r
+      in
+      { downdown = unsafeGet 0 rarr, downup = unsafeGet 1 rarr, updown = unsafeGet 2 rarr, upup = unsafeGet 3 rarr}
+    _      -> Debug.todo "impossible"
+
+---standard bipartite spin-1/2 basis: {00,01,10,11}---
+{-
+
+type Result1D = Qubit  { up :Float, down : Float} | Prob1D { up :Float, down : Float }
 
 xgate : Result1D -> Result1D
 xgate input =
@@ -24,11 +168,7 @@ hadamard input =
     Qubit q -> Qubit { up = (q.up + q.down) / sqrt(2), down = (q.up - q.down) / sqrt(2)}
     _ -> input 
 
----2-Qubit Gates---
-
 type Result2D = Qubit2D { up1 :Float, down1 : Float , up2 : Float, down2 : Float} | Prob2D { up_up :Float, up_down : Float , down_up : Float, down_down : Float} | Output2D { up1 :Float, down1 : Float , up2 : Float, down2 : Float}
-
----standard bipartite spin-1/2 basis: {00,01,10,11}---
 
 swap2D: Result2D -> Result2D
 swap2D input =
@@ -257,3 +397,11 @@ apply2Q init funcs =
         "measure" -> init
         _ -> Debug.todo "Invalid operators in apply2Q"
 -} 
+
+
+------3 Qubits Gate---
+--- Tensor Product between a 2*2 Matrix and a 4*4 Matrix, result in 8*8 matrix ---
+
+
+--- Tensor Product between a 4*4 Matrix and a 2*2 Matrix, result in 8*8 matrix ---
+-}
