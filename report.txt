@@ -4,6 +4,7 @@ We modulize the backend and put all quantum circuit evaluation functions into "O
 We implemented the basic Single Qubit Quantum gates (Pauli-X, Pauli-Z, Hadamard). 
 And we combine any two of them to form some of the 2 qubit quantum gates.
 We also implemented Controlled-Not Gate, Controlled-Z Gate and Controlled-Hadamard Gate.
+
 We then extend this to 3-Qubit Gates, combining any 3 of the single qubit gates, or a combination of single qubit gate on top of 2 Qubit Controlled Gates.
 Due to time constraint, we do not support double Control Gate like Toffoli Gate at the moment.
 So we more or less reached the maximum amount of freedom we planned for the users to have over designing their quantum circuits.
@@ -22,18 +23,26 @@ Due to the nature of functional programming and the non-existence of tensor prod
 The result is rewarding though, as we allow a great deal of freedom for the user to build their own 2 or 3 Qubit Quantum Circuit.
 
 Frontend:
-Just like backend modules, we also separate different pages and different status into different modules. We added a parameter named page in our model to control the page user's on. We have developed the following three pages:
+We separate different pages of the interactive website into different modules. We added a parameter named page in our model to control the page the user is on. We have developed the following three pages:
 
-1. Introduction page. The introduction page is main a paragraph letting users know what this application is and what we are trying to do by using this application.
+1. Introduction page. The introduction page is to let users know what this application is and what we are trying to show.
 
-2. Circuit page. This is where the user can actually get to modify the circuit and put in values they're interested in and run the circuit. We will talk about its functionality later in the report.
+2. Circuit page(s). This is where the users can actually get to build their own circuit and put in values they're interested in and run the circuit. We will talk about its functionality later in the report.
 
 3. Instruction page. This page is mainly used to teach users how to use our application, including how to modify user input, how to check if a circuit is correctly designed, how to run checked circuits.
 
-As the main goal of this application is to giving user freedom to design and run 2D and 3D circuits as they want, we hope that designs with documentation would be best approach. Due to the heavy scientific nature of this application, a lot of the computation work was conducted with the Operation module. Our main module "Homepage.elm" is basically calling from Opertation module to retrieve outputs. 
+As the main goal of this application is to allow users to design and run 2D and 3D circuits as freely as they want, we choose to fuse documentation/instructions with interactive circuits. Due to the heavy scientific nature of this application, the simulation of quantum circuit is in its own module as the backend(Operators.elm). Our main module "Homepage.elm" is basically calling from that Operators module to retrieve outputs. 
 
-Inside the circuit page, we successfully managed to present to users different status of the circuit by changing variables in the model. We have three status for the webpage (3 pages) and three status for the circuit (checked, run, neither checked nor run). In order to return correct input, we have also developed a few sanity check functions and "checklist feature" that ensure user inputs are correctly before they are passed on to the operations module.
+Inside the circuit page, we successfully managed to present to users different states of the circuit by changing variables in the model. We have three states for the webpage (3 pages) and three status for the circuit (checked, run, neither checked nor run). In order to return correct input, we have also developed a few sanity check functions and "checklist feature" that ensure user inputs are correct before they are passed on to the Operators module.
 
-Another thing we have accomplished is that we have tried different interaction schemes and finally choose to use the currently one. This is really laborious work because we first started off controlling the circuit using keyboard input. But we realized that this might not be the best way for users to interact and therefore, we change to mouse click. After clicking a certain location (picture) in the circuit picture, the application would expand several option gates for users to choose from.
+Another thing we have accomplished is that we have experimented different interaction schemes and finally ended up with the current one. This is really laborious work because we first started off controlling the circuit using keyboard input. But we realized that this might not be the best way for users to interact and therefore, we change to mouse click. After clicking a certain location (picture) in the circuit picture, the application would expand several option gates for users to choose from.
 
-A lot of the front-end design are based on css and html and we used a great number of libraries in these field (e.g. html.styled, Css, etc.). Some of them are really useful in styling elements but they often came into type conflicts with each other. For example, Attribute type could be from different libraries and therefore, could not be used togeter. Also, some of the libraries are poorly documented and don't have any usage examples. This definitely costs us more time in understanding how things worked and how we can utilize the library in our own application design.
+A lot of the front-end design depends on css and html and we used a great number of libraries in these field (e.g. html.styled, Css, etc.). Some of them are really useful in styling elements but they often came into type conflicts with each other. For example, Attribute type could be from different libraries and therefore, could not be used togeter. Also, some of the libraries are poorly documented and don't have any usage examples. These definitely cost us more time in understanding how things worked and how we can utilize the library in our own application design.
+
+To build:
+after installing packages, do:
+```
+elm make Homepage.elm
+```
+and index.html would be the result to view.
+Currently index.html and picture folder are included so you don't have to build.

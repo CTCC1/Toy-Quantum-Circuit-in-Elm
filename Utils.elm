@@ -38,7 +38,8 @@ verify2D ls =
     isEmpty (filter invalid ls)
 
 ifc x = (x == "cu" || x == "cd")
-isgate x = (x /= "bridge") && (x /= "c") && (ifc x == False) && (x /= "null")
+isgate x = (x /= "bridge") && (ifc x == False) && (x /= "null")
+twoside x y = (x == "cd" && isgate y) || (y == "cu" && isgate x)
 verify_rotate (x,y,z) = (ifc x && ifc y) || ((ifc x) && (y == "null") && (z == "null"))
 
 verify3D : Array (String, String, String) -> Bool
@@ -49,8 +50,7 @@ verify3D ls =
                       verify_rotate (x,y,z) || verify_rotate (x,z,y) || 
                       verify_rotate (y,z,x) || verify_rotate (y,x,z) ||
                       verify_rotate (z,y,x) || verify_rotate (z,x,y) ||
-                      (y == "bridge" && (ifc x == True) && (ifc z == True)) || 
-                      (y == "bridge" && (isgate x == False) && (isgate z == False))
+                      (y == "bridge" && not (twoside x z))
   in 
     isEmpty (filter invalid ls)
 
