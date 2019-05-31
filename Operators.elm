@@ -48,7 +48,10 @@ tensorProduct22 x y =
       b12 = unsafeGet 1 yarr
       b21 = unsafeGet 2 yarr
       b22 = unsafeGet 3 yarr
-      result = [[a11*b11, a11*b12, a12*b11, a12*b12], [a11*b21, a11*b22, a12*b21, a12*b22], [a21*b11, a21*b12, a22*b11, a22*b12], [a21*b21, a21*b22, a22*b21, a22*b22]]
+      result = [  [a11*b11, a11*b12, a12*b11, a12*b12]
+                , [a11*b21, a11*b22, a12*b21, a12*b22]
+                , [a21*b11, a21*b12, a22*b11, a22*b12]
+                , [a21*b21, a21*b22, a22*b21, a22*b22]]
     in
       case M.fromLists result of
         Just r  -> r
@@ -109,6 +112,8 @@ strToGate2Q : (String, String) -> M.Matrix Float
 strToGate2Q (str1, str2) =
   case (str1, str2) of
     ("c","c") -> Debug.todo "invalid gate, two control in 2Q"
+    ("c","null") -> Debug.todo "invalid gate, empty control in 2Q"
+    ("null","c") -> Debug.todo "invalid gate, empty control in 2Q"
     ("c","x") -> cnot
     ("c","z") -> cz
     ("c","h") -> ch

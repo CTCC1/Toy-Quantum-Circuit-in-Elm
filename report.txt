@@ -1,0 +1,16 @@
+Backend:
+
+We modulize the backend and put all quantum circuit evaluation functions into "Operators.elm".
+We implemented the basic 1d Quantum gates (Pauli-X, Pauli-Z, Hadamard). 
+And we combine any two of them to form some of the 2d quantum gates. 
+We also implemented Controlled-Not Gate, Controlled-Z Gate and Controlled-Hadamard Gate.
+
+The interface is to take in an array of string tuples from the frontend model, translate it into a list of Matrix that represents the unitary operations quantum gate have on the qubit, 
+and recursively doing matrix multiplication to get the result. 
+
+A 2D gate that is a combination of 1d gates is taking the tensor product of the two 1d gate matrices. 
+We didn't implement the tensor product in general but we implement a direct computation taking two 2*2 matrices and compute their tensor product (a 4*4 matrix).
+
+Special Thanks to Paul's feedback: Originally (in part2 submission) we have done this using compound typing in elm and the code was quite lengthy and complicated. We were not in the mood to temper with Matrix multiplication and Tensor Product in elm, but Paul suggested we could give it a try and we end up with the solution we have now.
+
+Due to the nature of functional programming and the non-existence of tensor product library, the Elm language isn't the best friend of Tensor product after all, so I have to do some unholy 64 entries matrix by hand. The result is rewarding though.
